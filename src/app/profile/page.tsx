@@ -48,7 +48,7 @@ export default function ProfilPage() {
   }, []);
 
   const fetchProfile = async (id: number) => {
-    const res = await fetch(`http://127.0.0.1:8000/profile/${id}`);
+    const res = await fetch(`http://localhost:3000/profile/${id}`);
     if (res.ok) {
       const data = await res.json();
       setProfile((prev) => ({

@@ -1,30 +1,22 @@
 from sqlalchemy.orm import Session
-from passlib.hash import bcrypt
-import models, schemas
+from models import User
+from schemas import UserCreate
 
-def create_user(db: Session, user: schemas.UserCreate):
-    hashed_pw = bcrypt.hash(user.password)
-    db_user = models.User(
-        first_name=user.first_name,
-        last_name=user.last_name,
-        email=user.email,
-        password=hashed_pw
-    )
+def get_user_by_email(db: Session, email: str):
+    return db.query(User).filter(User.email == email).first()
+
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()
+
+def verify_user(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
+    if user and user.password == password:  # nanti bisa diganti hash
+        return user
+    return None
+
+def create_user(db: Session, user: UserCreate):
+    db_user = User(email=user.email, password=user.password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
-
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
-
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
-
-def verify_user(db: Session, email: str, password: str):
-    user = get_user_by_email(db, email)
-    if not user:
-        return None
-    if not bcrypt.verify(password, user.password):
-        return None
-    return user

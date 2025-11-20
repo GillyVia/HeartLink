@@ -1,10 +1,13 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Sesuaikan user, password, host, port, dan database MySQL kamu
-DATABASE_URL = "mysql+mysqlconnector://root:@localhost:3306/heartlink"
+DATABASE_URL = "mysql+pymysql://root:@localhost/heartlink"
 
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True
+)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 Base = declarative_base()
