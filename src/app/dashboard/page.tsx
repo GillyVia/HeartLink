@@ -3,18 +3,32 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   FaUser,
-  FaShieldAlt,
   FaPaperPlane,
-  FaCog,
   FaBars,
   FaSignOutAlt,
+  FaHome,
+  FaQuestionCircle,
+  FaHistory,
 } from "react-icons/fa";
 
 export default function Dashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState<string>("");
-  const [activeIndex, setActiveIndex] = useState(0); // indikator titik aktif
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const newsContainerRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Tutup sidebar jika klik di luar area
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        setSidebarOpen(false);
+      }
+    }
+    if (sidebarOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sidebarOpen]);
 
   // ✅ Ambil nama user dari localStorage
   useEffect(() => {
@@ -37,32 +51,37 @@ export default function Dashboard() {
     router.push("/login");
   };
 
-  // ✅ Scroll manual (tombol kiri–kanan)
+  // ✅ Scroll manual berita
   const scrollNews = (direction: "left" | "right") => {
     if (newsContainerRef.current) {
       const scrollAmount = direction === "left" ? -500 : 500;
-      newsContainerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      newsContainerRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: "smooth",
+      });
     }
   };
 
-  // ✅ Auto-slide setiap 5 detik
+  // ✅ Auto-slide berita ke kanan setiap 5 detik
   useEffect(() => {
+    const cardWidth = 500;
+    const totalCards = 4;
     const interval = setInterval(() => {
       if (newsContainerRef.current) {
-        const cardWidth = 500;
-        const totalCards = 4;
-        const newIndex = (activeIndex + 1) % totalCards;
-        newsContainerRef.current.scrollTo({
-          left: newIndex * cardWidth,
-          behavior: "smooth",
+        setActiveIndex((prev) => {
+          const newIndex = (prev + 1) % totalCards;
+          newsContainerRef.current!.scrollTo({
+            left: newIndex * cardWidth,
+            behavior: "smooth",
+          });
+          return newIndex;
         });
-        setActiveIndex(newIndex);
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [activeIndex]);
+  }, []);
 
-  // ✅ Update titik aktif saat scroll manual
+  // ✅ Update indikator titik saat scroll manual
   const handleScroll = () => {
     if (newsContainerRef.current) {
       const scrollLeft = newsContainerRef.current.scrollLeft;
@@ -77,13 +96,15 @@ export default function Dashboard() {
       className="min-h-screen bg-cover bg-center flex flex-col items-center font-sans relative"
       style={{ backgroundImage: "url('/background.jpg')" }}
     >
-      {/* Overlay */}
       <div className="absolute inset-0 bg-[#EAF3EF]/80 backdrop-blur-sm"></div>
 
       {/* ===== HEADER ===== */}
-      <header className="relative z-10 bg-[#A0C4A9]/90 w-full flex justify-between items-center px-6 py-4 rounded-b-[60px] shadow-md backdrop-blur-md">
+      <header className="relative z-20 bg-[#A0C4A9]/90 w-full flex justify-between items-center px-6 py-4 rounded-b-[60px] shadow-md backdrop-blur-md">
         <div className="flex items-center gap-3 font-bold text-lg text-[#1E3A2E]">
-          <FaBars className="text-2xl cursor-pointer hover:scale-110 transition" />
+          <FaBars
+            className="text-2xl cursor-pointer hover:scale-110 transition"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          />
           <span>
             Halo, <span className="italic">{userName}</span> 👋
           </span>
@@ -96,6 +117,39 @@ export default function Dashboard() {
           <FaSignOutAlt className="text-xl" />
         </button>
       </header>
+
+      {/* ===== SIDEBAR ===== */}
+      <aside
+        ref={sidebarRef}
+        className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-30 transform transition-all duration-500 ease-in-out 
+        ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
+      >
+        <div className="flex items-center justify-between px-4 py-4 border-b border-white/30">
+          <h2 className="text-xl font-bold">Menu</h2>
+          <FaBars
+            className="text-2xl cursor-pointer hover:scale-110 transition"
+            onClick={() => setSidebarOpen(false)}
+          />
+        </div>
+
+        <nav className="flex-1 px-4 py-6 space-y-3 font-semibold">
+          <a href="/dashboard" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+            <FaHome /> Beranda
+          </a>
+          <a href="/profile" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaUser /> Profil
+          </a>
+          <a href="/faq" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaQuestionCircle /> FAQ
+          </a>
+          <a href="/riwayat" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaHistory /> Riwayat
+          </a>
+          <a href="/hubungi-kami" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaPaperPlane /> Hubungi Kami
+          </a>
+        </nav>
+      </aside>
 
       {/* ===== LAPOR GEJALA ===== */}
       <div
@@ -112,9 +166,9 @@ export default function Dashboard() {
       <div className="relative z-10 mt-10 grid grid-cols-2 sm:grid-cols-4 gap-8 justify-center">
         {[
           { icon: <FaUser />, label: "Profile", route: "/profile" },
-          { icon: <FaShieldAlt />, label: "Pusat Layanan", route: "/pusat-layanan" },
+          { icon: <FaQuestionCircle />, label: "FAQ", route: "/faq" },
+          { icon: <FaHistory />, label: "Riwayat", route: "/riwayat" },
           { icon: <FaPaperPlane />, label: "Hubungi Kami", route: "/hubungi-kami" },
-          { icon: <FaCog />, label: "Pengaturan", route: "/pengaturan" },
         ].map((item, i) => (
           <div
             key={i}
@@ -129,13 +183,12 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* ===== BERITA KESEHATAN (CAROUSEL + AUTO SLIDE + DOTS) ===== */}
+      {/* ===== BERITA ===== */}
       <div className="relative z-10 mt-14 w-[90%] max-w-7xl">
         <h3 className="text-3xl font-extrabold text-[#1E3A2E] mb-6 text-center flex items-center justify-center gap-2">
           Berita Kesehatan Terbaru <span className="text-2xl">🩺</span>
         </h3>
 
-        {/* Tombol Panah */}
         <button
           onClick={() => scrollNews("left")}
           className="absolute left-0 top-1/2 -translate-y-1/2 bg-[#A0C4A9]/90 text-white p-3 rounded-full shadow-md hover:bg-[#5D7E69] hover:scale-110 transition z-20"
@@ -149,7 +202,6 @@ export default function Dashboard() {
           ›
         </button>
 
-        {/* Container Scroll */}
         <div
           ref={newsContainerRef}
           onScroll={handleScroll}
@@ -159,28 +211,28 @@ export default function Dashboard() {
             {
               img: "/news1.jpg",
               title: "Pola Makan Sehat untuk Jantung Kuat 💚",
-              desc: "Menjaga kesehatan jantung dimulai dari pola makan seimbang. Ketahui makanan yang baik untuk tekanan darah dan kolesterol.",
+              desc: "Menjaga kesehatan jantung dimulai dari pola makan seimbang.",
               author: "Dokter Kardiologi Nasional",
               time: "2 jam yang lalu",
             },
             {
               img: "/news2.jpg",
-              title: "Pentingnya Olahraga Teratur untuk Kesehatan Jantung 🏃‍♂️",
-              desc: "Aktivitas ringan seperti jalan kaki 30 menit sehari menurunkan risiko penyakit jantung hingga 40%.",
+              title: "Pentingnya Olahraga Teratur 🏃‍♂️",
+              desc: "Aktivitas ringan seperti jalan kaki 30 menit sehari menurunkan risiko penyakit jantung.",
               author: "Komunitas Jantung Sehat",
               time: "1 hari yang lalu",
             },
             {
               img: "/news3.jpg",
               title: "Kenali Gejala Dini Serangan Jantung 🚨",
-              desc: "Nyeri dada, lelah berlebihan, dan sesak napas bisa jadi tanda awal. Deteksi dini dapat menyelamatkan nyawa.",
+              desc: "Nyeri dada, lelah berlebihan, dan sesak napas bisa jadi tanda awal.",
               author: "RS Pusat Jantung Jakarta",
               time: "3 hari yang lalu",
             },
             {
               img: "/news4.jpg",
               title: "Dampak Stres terhadap Kesehatan Jantung 😥",
-              desc: "Tekanan emosional berlebih memicu detak jantung dan tekanan darah. Yuk, kelola stres dengan mindfulness!",
+              desc: "Tekanan emosional berlebih memicu detak jantung dan tekanan darah.",
               author: "Psikolog Kesehatan Nasional",
               time: "5 hari yang lalu",
             },

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   FaBars,
   FaHome,
@@ -12,7 +12,8 @@ import {
 } from "react-icons/fa";
 
 export default function ProfilPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const [editMode, setEditMode] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
 
@@ -38,6 +39,18 @@ export default function ProfilPage() {
     file: null,
   });
 
+  // ✅ Tutup sidebar jika klik di luar area
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        setSidebarOpen(false);
+      }
+    }
+    if (sidebarOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sidebarOpen]);
+
+  // ✅ Ambil data user dari localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -48,7 +61,7 @@ export default function ProfilPage() {
   }, []);
 
   const fetchProfile = async (id: number) => {
-    const res = await fetch(`http://localhost:3000/profile/${id}`);
+    const res = await fetch(`http://127.0.0.1:8000/profile/${id}`);
     if (res.ok) {
       const data = await res.json();
       setProfile((prev) => ({
@@ -98,7 +111,7 @@ export default function ProfilPage() {
       const result = await res.json();
       setProfile((prev) => ({
         ...prev,
-        foto: result.foto, // foto URL backend disimpan
+        foto: result.foto,
       }));
       alert("✅ Profil berhasil disimpan!");
       setEditMode(false);
@@ -109,8 +122,17 @@ export default function ProfilPage() {
 
   return (
     <div className="min-h-screen flex bg-[#F8FCFA] font-sans overflow-hidden relative">
-      {/* SIDEBAR */}
+     {/* ===== Overlay klik luar (tanpa blur) ===== */}
+{sidebarOpen && (
+  <div
+    className="fixed inset-0 bg-black/10 z-10"
+    onClick={() => setSidebarOpen(false)}
+  ></div>
+)}
+
+      {/* ===== SIDEBAR ===== */}
       <aside
+        ref={sidebarRef}
         className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-20
         transform transition-all duration-500 ease-in-out 
         ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
@@ -119,7 +141,7 @@ export default function ProfilPage() {
           <h2 className="text-xl font-bold">Menu</h2>
           <FaBars
             className="text-2xl cursor-pointer hover:scale-110 transition"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={() => setSidebarOpen(false)}
           />
         </div>
 
@@ -127,7 +149,7 @@ export default function ProfilPage() {
           <a href="/dashboard" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaHome /> Beranda
           </a>
-          <a href="/profil" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg text-[#1E3A2E] shadow-sm">
+          <a href="/profile" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg text-[#1E3A2E] shadow-sm">
             <FaUser /> Profil
           </a>
           <a href="/faq" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
@@ -142,14 +164,16 @@ export default function ProfilPage() {
         </nav>
       </aside>
 
-      {/* KONTEN PROFIL */}
-      <main className={`flex-1 p-6 transition-all duration-500 ease-in-out ${sidebarOpen ? "ml-64" : "ml-0"}`}>
-        {!sidebarOpen && (
-          <FaBars
-            className="text-3xl text-[#1E3A2E] cursor-pointer mb-4 hover:scale-110 transition"
-            onClick={() => setSidebarOpen(true)}
-          />
-        )}
+      {/* ===== KONTEN PROFIL ===== */}
+      <main
+        className={`flex-1 p-6 transition-all duration-500 ease-in-out ${
+          sidebarOpen ? "ml-64" : "ml-0"
+        }`}
+      >
+        <FaBars
+          className="text-3xl text-[#1E3A2E] cursor-pointer mb-4 hover:scale-110 transition"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        />
 
         {/* HEADER PROFIL */}
         <div className="bg-white/90 rounded-[25px] shadow-md p-6 flex flex-col sm:flex-row items-center justify-between border border-[#DDEBE3]">
@@ -163,11 +187,18 @@ export default function ProfilPage() {
               <label className="absolute bottom-0 right-0 bg-[#A0C4A9] hover:bg-[#4b6654] text-white text-xs px-2 py-1 rounded-full cursor-pointer transition">
                 <FaUpload className="inline-block mr-1" />
                 Upload
-                <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUpload}
+                  className="hidden"
+                />
               </label>
             </div>
             <div>
-              <h2 className="text-3xl font-extrabold text-[#1E3A2E]">{profile.nama || "Pengguna"}</h2>
+              <h2 className="text-3xl font-extrabold text-[#1E3A2E]">
+                {profile.nama || "Pengguna"}
+              </h2>
             </div>
           </div>
         </div>
@@ -180,7 +211,8 @@ export default function ProfilPage() {
               onClick={() => (editMode ? handleSave() : setEditMode(true))}
               className="flex items-center text-sm text-[#1E3A2E] hover:text-[#3E6954] transition"
             >
-              <FaEdit className="mr-1 text-green-600" /> {editMode ? "Simpan" : "Ubah"}
+              <FaEdit className="mr-1 text-green-600" />{" "}
+              {editMode ? "Simpan" : "Ubah"}
             </button>
           </div>
 
@@ -201,12 +233,18 @@ export default function ProfilPage() {
                   <input
                     type="text"
                     name={key}
-                    value={typeof profile[key] === "string" ? (profile[key] as string) : ""}
+                    value={
+                      typeof profile[key] === "string"
+                        ? (profile[key] as string)
+                        : ""
+                    }
                     onChange={handleChange}
                     className="border-b border-[#A0C4A9] focus:outline-none w-2/3 bg-transparent text-right"
                   />
                 ) : (
-                  <span className="text-right">{(profile as any)[key] || "-"}</span>
+                  <span className="text-right">
+                    {(profile as any)[key] || "-"}
+                  </span>
                 )}
               </div>
             ))}

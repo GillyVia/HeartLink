@@ -6,10 +6,11 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  // ✅ Tambahkan tipe parameter dengan benar
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:3000/api/login", {
+    const res = await fetch("http://127.0.0.1:8000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -17,9 +18,10 @@ export default function Login() {
 
     if (res.ok) {
       const data = await res.json();
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data));
 
-      alert(`Selamat datang, ${data.first_name}!`);
+      // ✅ Pastikan data.first_name benar
+      alert(`Selamat datang, ${data.first_name || "Pengguna"}!`);
       router.push("/dashboard");
     } else {
       alert("Email atau password salah.");
