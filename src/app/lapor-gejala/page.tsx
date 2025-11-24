@@ -112,19 +112,47 @@ export default function LaporGejala() {
       </div>
 
       {/* ===== Container Pertanyaan ===== */}
-      <div className="bg-[#A9CDBB] relative rounded-[30px] p-10 w-full max-w-5xl shadow-lg overflow-hidden">
-        {/* Progress bar Risiko */}
-        <div className="absolute top-0 left-0 w-full h-3 bg-gray-200 rounded-t-[30px]" />
+      <div className="bg-[#A9CDBB] relative rounded-[30px] p-6 w-full max-w-5xl shadow-lg overflow-hidden">
+        {/* Progress bar Risiko (top gradient) */}
+        <div className="absolute top-0 left-0 w-full h-6 bg-gray-200 rounded-t-[30px]" />
         <motion.div
-          className={`absolute top-0 left-0 h-3 bg-gradient-to-r ${riskColor} rounded-t-[30px]`}
+          className={`absolute top-0 left-0 h-6 bg-gradient-to-r ${riskColor} rounded-t-[30px]`}
           style={{ width: `${progress}%` }}
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.4 }}
         />
 
-        {/* Area Pertanyaan */}
-        <div className="flex justify-center items-center h-[420px] bg-[url('/hospital-bg.png')] bg-center bg-cover rounded-[20px]">
+        {/* Circular arrows at top-left/top-right */}
+        <div className="absolute top-4 left-4">
+          <div
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center cursor-pointer"
+            onClick={() => index > 0 && setIndex(index - 1)}
+          >
+            <FaArrowLeft />
+          </div>
+        </div>
+        <div className="absolute top-4 right-4">
+          <div
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center cursor-pointer"
+            onClick={() => index < questions.length - 1 && setIndex(index + 1)}
+          >
+            <FaArrowRight />
+          </div>
+        </div>
+
+        {/* Area Pertanyaan (full card, hospital bg) */}
+        <div
+          className="flex justify-center items-center min-h-[480px] bg-center rounded-[20px] p-8 relative"
+          style={{
+            backgroundImage: `url('/latar.jpg')`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center 60%',
+          }}
+        >
+          {/* overlay for better text contrast */}
+          <div className="absolute inset-0 bg-black/20 rounded-[20px] pointer-events-none" />
           <AnimatePresence mode="wait">
             <motion.div
               key={index}
@@ -132,23 +160,23 @@ export default function LaporGejala() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -40 }}
               transition={{ duration: 0.4 }}
-              className="text-center"
+              className="text-center max-w-2xl w-full"
             >
-              <h2 className="text-2xl font-bold text-[#1E3A2E] mb-8 px-6 drop-shadow-md">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#1E3A2E] mb-6 px-6 drop-shadow-md">
                 {questions[index]}
               </h2>
 
-              {/* Tombol Jawaban */}
-              <div className="flex flex-col items-center gap-4">
+              {/* Tombol Jawaban (pills besar) */}
+              <div className="flex flex-col items-center gap-6">
                 <button
                   onClick={() => handleAnswer(1)}
-                  className="bg-white px-10 py-3 rounded-full text-lg font-bold shadow hover:bg-green-100 transition"
+                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E]"
                 >
                   YA
                 </button>
                 <button
                   onClick={() => handleAnswer(0)}
-                  className="bg-white px-10 py-3 rounded-full text-lg font-bold shadow hover:bg-red-100 transition"
+                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E]"
                 >
                   TIDAK
                 </button>
@@ -156,7 +184,7 @@ export default function LaporGejala() {
 
               {/* Indikator risiko real-time */}
               <div className="mt-6 text-sm text-gray-700 italic">
-                Risiko sementara:{" "}
+                Risiko sementara: {" "}
                 <span
                   className={
                     score <= 5
@@ -179,22 +207,6 @@ export default function LaporGejala() {
               </div>
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Navigasi panah */}
-        <div className="absolute bottom-6 right-8 text-xl text-gray-700 flex gap-4">
-          {index > 0 && (
-            <FaArrowLeft
-              className="cursor-pointer hover:text-[#1E3A2E] transition"
-              onClick={() => setIndex(index - 1)}
-            />
-          )}
-          {index < questions.length - 1 && (
-            <FaArrowRight
-              className="cursor-pointer hover:text-[#1E3A2E] transition"
-              onClick={() => setIndex(index + 1)}
-            />
-          )}
         </div>
       </div>
     </div>

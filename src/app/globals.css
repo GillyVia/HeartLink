@@ -5,6 +5,29 @@
   --foreground: #171717;
 }
 
+/* Playpen Sans font (from Canva)
+   Place your font files in `public/fonts/` with these suggested names:
+   - PlaypenSans-Regular.woff2
+   - PlaypenSans-Bold.woff2
+   Then the browser will load them via the rules below.
+*/
+@font-face {
+  font-family: 'Playpen Sans';
+  src: url('/fonts/PlaypenSans-Regular.woff2') format('woff2'),
+       url('/fonts/PlaypenSans-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Playpen Sans';
+  src: url('/fonts/PlaypenSans-Bold.woff2') format('woff2'),
+       url('/fonts/PlaypenSans-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -22,7 +45,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Playpen Sans', Arial, Helvetica, sans-serif;
 }
 
 @keyframes fadeIn {
@@ -32,3 +55,119 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.8s ease-in-out forwards;
 }
+
+/* Custom styles for Profile page to match provided design */
+:root {
+  /* Updated to Canva green: #8eb69b (142,182,155) */
+  --brand-green: #8eb69b;
+  --sidebar-green: #8eb69b;
+  --muted-gray: #f3f5f6;
+}
+
+.app-bg {
+  background-color: #F6F8F8;
+}
+
+.sidebar-panel {
+  background: var(--sidebar-green);
+  color: #08251a;
+  border-top-right-radius: 28px;
+  border-bottom-right-radius: 28px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  font-family: 'Playpen Sans', Arial, Helvetica, sans-serif;
+}
+
+.profile-header-outline {
+  border: 2px solid rgba(0,0,0,0.7);
+  border-radius: 22px;
+  padding: 18px 22px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: 'Playpen Sans', Arial, Helvetica, sans-serif;
+}
+
+.avatar-large {
+  width: 92px;
+  height: 92px;
+  border-radius: 9999px;
+  object-fit: cover;
+  border: 6px solid var(--brand-green);
+}
+
+.upload-pill {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(142,182,155,0.95);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  font-family: 'Playpen Sans', Arial, Helvetica, sans-serif;
+}
+
+/* Hover helper that uses a subtle tint of the brand green */
+.hover-light-green {
+  transition: background-color 150ms ease-in-out;
+}
+.hover-light-green:hover { background-color: rgba(142,182,155,0.15); }
+
+.data-card {
+  background: #fff;
+  border-radius: 6px;
+  padding: 18px;
+  box-shadow: 0 3px 18px rgba(0,0,0,0.04);
+  font-family: 'Playpen Sans', Arial, Helvetica, sans-serif;
+}
+
+.data-row {
+  display: grid;
+  grid-template-columns: 240px 28px 1fr;
+  gap: 12px;
+  padding: 8px 0;
+  align-items: center;
+}
+
+.data-label {
+  font-weight: 600;
+}
+
+.label-col { display: flex; gap: 8px; align-items: center; }
+.colon { color: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; }
+
+.value-col {
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+
+.value-input {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  outline: none;
+}
+
+.value-text { width: 100%; text-align: left; display: block; padding: 6px 4px; }
+
+.edit-small {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: #2f6b53;
+  cursor: pointer;
+}
+
+.profile-header-wrapper { position: relative; }
+
