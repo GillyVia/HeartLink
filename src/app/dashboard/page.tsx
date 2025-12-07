@@ -19,7 +19,7 @@ export default function Dashboard() {
   const newsContainerRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Tutup sidebar jika klik di luar area
+  // Tutup sidebar jika klik di luar
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
@@ -30,7 +30,7 @@ export default function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
 
-  // ✅ Ambil nama user dari localStorage
+  // Ambil nama user
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -45,13 +45,13 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  // ✅ Fungsi logout
+  // Logout
   const handleLogout = () => {
     localStorage.removeItem("user");
     router.push("/login");
   };
 
-  // ✅ Scroll manual berita
+  // Scroll manual news
   const scrollNews = (direction: "left" | "right") => {
     if (newsContainerRef.current) {
       const scrollAmount = direction === "left" ? -500 : 500;
@@ -62,7 +62,7 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ Auto-slide berita ke kanan setiap 5 detik
+  // Auto-slide berita
   useEffect(() => {
     const cardWidth = 500;
     const totalCards = 4;
@@ -81,7 +81,7 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ Update indikator titik saat scroll manual
+  // Update indikator scroll
   const handleScroll = () => {
     if (newsContainerRef.current) {
       const scrollLeft = newsContainerRef.current.scrollLeft;
@@ -98,7 +98,7 @@ export default function Dashboard() {
     >
       <div className="absolute inset-0 bg-[#EAF3EF]/80 backdrop-blur-sm"></div>
 
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       <header className="relative z-20 bg-[#A0C4A9]/90 w-full flex justify-between items-center px-6 py-4 rounded-b-[60px] shadow-md backdrop-blur-md">
         <div className="flex items-center gap-3 font-bold text-lg text-[#1E3A2E]">
           <FaBars
@@ -118,7 +118,7 @@ export default function Dashboard() {
         </button>
       </header>
 
-      {/* ===== SIDEBAR ===== */}
+      {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
         className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-30 transform transition-all duration-500 ease-in-out 
@@ -136,25 +136,25 @@ export default function Dashboard() {
           <a href="/dashboard" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
             <FaHome /> Beranda
           </a>
-          <a href="/profile" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+          <a href="/profile" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg">
             <FaUser /> Profil
           </a>
-          <a href="/faq" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+          <a href="/faq" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg">
             <FaQuestionCircle /> FAQ
           </a>
-          <a href="/riwayat" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+          <a href="/riwayat" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg">
             <FaHistory /> Riwayat
           </a>
-          <a href="/hubungi-kami" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+          <a href="/hubungi-kami" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg">
             <FaPaperPlane /> Hubungi Kami
           </a>
         </nav>
       </aside>
 
-      {/* ===== LAPOR GEJALA ===== */}
+      {/* LAPOR GEJALA */}
       <div
         onClick={() => router.push("/lapor-gejala")}
-        className="relative z-10 bg-white/90 mt-10 rounded-[40px] shadow-lg px-10 py-6 flex flex-col items-center text-center w-[80%] max-w-4xl cursor-pointer hover:scale-[1.02] transition-transform duration-300 border border-white/50 backdrop-blur-md"
+        className="relative z-10 bg-white/90 mt-10 rounded-[40px] shadow-lg px-10 py-6 flex flex-col items-center text-center w-[80%] max-w-4xl cursor-pointer hover:scale-[1.02] transition border border-white/50 backdrop-blur-md"
       >
         <img src="/heart.png" alt="heart" className="w-24 h-24 mb-3 animate-pulse" />
         <h2 className="text-2xl font-extrabold text-[#2C423F] hover:text-[#3E6954] transition">
@@ -162,28 +162,51 @@ export default function Dashboard() {
         </h2>
       </div>
 
-      {/* ===== FITUR GRID ===== */}
-      <div className="relative z-10 mt-10 grid grid-cols-2 sm:grid-cols-4 gap-8 justify-center">
-        {[
-          { icon: <FaUser />, label: "Profile", route: "/profile" },
-          { icon: <FaQuestionCircle />, label: "FAQ", route: "/faq" },
-          { icon: <FaHistory />, label: "Riwayat", route: "/riwayat" },
-          { icon: <FaPaperPlane />, label: "Hubungi Kami", route: "/hubungi-kami" },
-        ].map((item, i) => (
-          <div
-            key={i}
-            onClick={() => router.push(item.route)}
-            className="flex flex-col items-center bg-white/80 border-2 border-[#315D47]/40 rounded-[25px] p-6 shadow-md hover:bg-[#CFE5DB]/70 hover:shadow-lg transition duration-300 cursor-pointer backdrop-blur-sm"
-          >
-            <div className="text-[#315D47] text-4xl mb-3">{item.icon}</div>
-            <p className="font-bold text-[#1B352B] text-center whitespace-pre-line">
-              {item.label}
-            </p>
-          </div>
-        ))}
+      {/* FITUR GRID — NEW UI (SAMA SEPERTI GAMBAR) */}
+      <div className="relative z-10 mt-10 grid grid-cols-2 sm:grid-cols-4 gap-5 px-4">
+
+        {/* Profil */}
+        <div
+          onClick={() => router.push("/profile")}
+          className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
+        >
+          <FaUser className="text-[#315D47] text-4xl mb-1" />
+          <p className="font-bold text-[#1B352B]">Profil</p>
+        </div>
+
+        {/* FAQ */}
+        <div
+          onClick={() => router.push("/faq")}
+          className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
+        >
+          <FaQuestionCircle className="text-[#315D47] text-4xl mb-1" />
+          <p className="font-bold text-[#1B352B]">FAQ</p>
+        </div>
+
+        {/* Hubungi Kami */}
+        <div
+          onClick={() => router.push("/hubungi-kami")}
+          className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
+        >
+          <FaPaperPlane className="text-[#315D47] text-4xl mb-1" />
+          <p className="font-bold text-[#1B352B] text-center whitespace-pre-line">
+            Hubungi{"\n"}Kami
+          </p>
+        </div>
+
+        {/* Riwayat */}
+        <div
+          onClick={() => router.push("/riwayat")}
+          className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
+        >
+          <FaHistory className="text-[#315D47] text-4xl mb-1" />
+          <p className="font-bold text-[#1B352B] text-center whitespace-pre-line">
+            Riwayat{"\n"}
+          </p>
+        </div>
       </div>
 
-      {/* ===== BERITA ===== */}
+      {/* BERITA */}
       <div className="relative z-10 mt-14 w-[90%] max-w-7xl">
         <h3 className="text-3xl font-extrabold text-[#1E3A2E] mb-6 text-center flex items-center justify-center gap-2">
           Berita Kesehatan Terbaru <span className="text-2xl">🩺</span>
@@ -239,7 +262,7 @@ export default function Dashboard() {
           ].map((news, index) => (
             <div
               key={index}
-              className="flex-shrink-0 w-[480px] bg-white/85 rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden backdrop-blur-sm transition-transform hover:scale-[1.02] cursor-pointer border border-white/50"
+              className="flex-shrink-0 w-[480px] bg-white/85 rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden backdrop-blur-sm transition hover:scale-[1.02] cursor-pointer border border-white/50"
             >
               <img src={news.img} alt={news.title} className="w-full h-56 object-cover" />
               <div className="p-5 flex flex-col justify-between h-[230px]">
@@ -257,12 +280,12 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Indikator Titik */}
+        {/* Indikator */}
         <div className="flex justify-center mt-4 gap-2">
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              className={`w-3 h-3 rounded-full transition ${
                 activeIndex === i ? "bg-[#4C8C6C]" : "bg-[#CFE5DB]"
               }`}
             ></div>
