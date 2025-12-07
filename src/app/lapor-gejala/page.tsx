@@ -36,6 +36,9 @@ export default function LaporGejala() {
     "Apakah tekanan darah Anda tidak stabil?",
   ];
 
+  // === Bobot pertanyaan kritis ===
+  const criticalIndices = [3, 4, 5, 7, 8, 9, 11, 19, 24];
+
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(25).fill(0));
   const [score, setScore] = useState(0);
@@ -44,8 +47,26 @@ export default function LaporGejala() {
   const handleAnswer = async (value: number) => {
     const updated = [...answers];
     updated[index] = value;
+
+    // hitung skor
+    let newScore = score;
+    if (value === 1) {
+      if (criticalIndices.includes(index)) {
+        newScore += 3; // jawaban kritis berbobot 3
+      } else {
+        newScore += 1; // jawaban biasa berbobot 1
+      }
+    }
+
     setAnswers(updated);
-    setScore(score + value);
+    setScore(newScore);
+
+    // 🧠 Early Stop Logic
+    if (newScore >= 12) {
+      // nilai total cukup untuk menyimpulkan risiko tinggi
+      handleSubmit(updated, newScore);
+      return;
+    }
 
     if (index < questions.length - 1) {
       setIndex(index + 1);
@@ -54,47 +75,19 @@ export default function LaporGejala() {
     }
   };
 
-  // === Submit ke model Decision Tree ===
-  const handleSubmit = async (data: number[]) => {
-    const body = {
-      age: data[0] ? 55 : 30,
-      gender: data[1],
-      ap_hi: data[7] ? 150 : 120,
-      ap_lo: data[24] ? 95 : 80,
-      cholesterol: data[8] ? 2 : 1,
-      gluc: data[9] ? 2 : 1,
-      smoke: data[3],
-      alco: data[4],
-      active: data[5] ? 0 : 1,
-      height: 165,
-      weight: data[10] ? 85 : 65,
-    };
+  const handleSubmit = async (data: number[], scoreVal: number) => {
+    let risk = "Rendah";
+    if (scoreVal <= 8) risk = "Rendah";
+    else if (scoreVal <= 14) risk = "Sedang";
+    else risk = "Tinggi";
 
-    try {
-      const res = await fetch("http://127.0.0.1:8000/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const result = await res.json();
-      router.push(
-        `/hasil-skrining?risk=${result.risk}&prob=${result.probability.toFixed(2)}`
-      );
-    } catch (err) {
-      console.error("❌ Gagal menghubungi server backend:", err);
-      alert("Terjadi kesalahan koneksi ke server.");
-    }
+    router.push(`/hasil-skrining?risk=${risk}`);
   };
 
-  // === Progress bar ===
+  // Progress visual (0–100%)
   const progress = ((index + 1) / questions.length) * 100;
 
-  // === Risiko sementara ===
-  let riskLabel = "Rendah";
-  if (score >= 10 && score < 18) riskLabel = "Sedang";
-  else if (score >= 18) riskLabel = "Tinggi";
-
+  // Warna dinamis progress bar (berdasarkan skor)
   const riskColor =
     riskLabel === "Rendah"
       ? "text-green-700"
@@ -103,78 +96,115 @@ export default function LaporGejala() {
       : "text-red-700";
 
   return (
-    <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center py-6 px-6 relative">
-      {/* Header */}
-      <div className="w-full max-w-6xl flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center py-8 px-4 transition-all duration-300">
+      {/* ===== Header ===== */}
+      <div className="w-full max-w-5xl flex justify-between items-center mb-6">
         <button
           onClick={() => router.push("/dashboard")}
           className="flex items-center gap-2 text-lg font-bold text-[#1E3A2E]"
         >
           <FaArrowLeft /> Pertanyaan
         </button>
+
         <p className="font-semibold text-gray-700">
           Soal {index + 1} / {questions.length}
         </p>
       </div>
 
-      {/* Container utama (diperlebar) */}
-      <div className="bg-[#A9CDBB] rounded-[30px] w-full max-w-6xl shadow-lg p-16 md:p-20 text-center relative overflow-hidden">
-        {/* Progress bar */}
-        <div className="absolute top-0 left-0 w-full h-2 bg-gray-300 rounded-t-[30px]" />
+      {/* ===== Container Pertanyaan ===== */}
+      <div className="bg-[#A9CDBB] relative rounded-[30px] p-6 w-full max-w-5xl shadow-lg overflow-hidden">
+        {/* Progress bar Risiko (top gradient) */}
+        <div className="absolute top-0 left-0 w-full h-6 bg-gray-200 rounded-t-[30px]" />
         <motion.div
-          className="absolute top-0 left-0 h-2 bg-gradient-to-r from-green-400 to-green-300 rounded-t-[30px]"
+          className={`absolute top-0 left-0 h-6 bg-gradient-to-r ${riskColor} rounded-t-[30px]`}
           style={{ width: `${progress}%` }}
           transition={{ duration: 0.3 }}
         />
 
-        {/* Pertanyaan */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            transition={{ duration: 0.3 }}
+        {/* Circular arrows at top-left/top-right */}
+        <div className="absolute top-4 left-4">
+          <div
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center cursor-pointer"
+            onClick={() => index > 0 && setIndex(index - 1)}
           >
-            <p className="text-3xl md:text-4xl font-bold text-[#1E3A2E] mb-10">
-              {questions[index]}
-            </p>
+            <FaArrowLeft />
+          </div>
+        </div>
+        <div className="absolute top-4 right-4">
+          <div
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center cursor-pointer"
+            onClick={() => index < questions.length - 1 && setIndex(index + 1)}
+          >
+            <FaArrowRight />
+          </div>
+        </div>
 
-            <div className="flex flex-col items-center gap-8">
-              <button
-                onClick={() => handleAnswer(1)}
-                className="bg-white w-64 md:w-80 py-4 rounded-[50px] text-xl font-bold text-[#1E3A2E] shadow-md hover:bg-gray-100 transition-all"
-              >
-                YA
-              </button>
-              <button
-                onClick={() => handleAnswer(0)}
-                className="bg-white w-64 md:w-80 py-4 rounded-[50px] text-xl font-bold text-[#1E3A2E] shadow-md hover:bg-gray-100 transition-all"
-              >
-                TIDAK
-              </button>
-            </div>
-
-            {/* Risiko sementara */}
-            <p className="mt-8 text-base text-gray-700 italic">
-              Risiko sementara:{" "}
-              <span className={`${riskColor} font-semibold`}>
-                {riskLabel}
-              </span>
-            </p>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Tombol navigasi kanan */}
-        <div className="absolute bottom-8 right-10">
-          {index < questions.length - 1 && (
-            <div
-              onClick={() => setIndex(index + 1)}
-              className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-all"
+        {/* Area Pertanyaan (full card, hospital bg) */}
+        <div
+          className="flex justify-center items-center min-h-[480px] bg-center rounded-[20px] p-8 relative"
+          style={{
+            backgroundImage: `url('/latar.jpg')`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center 60%',
+          }}
+        >
+          {/* overlay for better text contrast */}
+          <div className="absolute inset-0 bg-black/20 rounded-[20px] pointer-events-none" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              transition={{ duration: 0.4 }}
+              className="text-center max-w-2xl w-full"
             >
-              <FaArrowRight size={18} />
-            </div>
-          )}
+              <h2 className="text-2xl md:text-3xl font-bold text-[#1E3A2E] mb-6 px-6 drop-shadow-md">
+                {questions[index]}
+              </h2>
+
+              {/* Tombol Jawaban (pills besar) */}
+              <div className="flex flex-col items-center gap-6">
+                <button
+                  onClick={() => handleAnswer(1)}
+                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E]"
+                >
+                  YA
+                </button>
+                <button
+                  onClick={() => handleAnswer(0)}
+                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E]"
+                >
+                  TIDAK
+                </button>
+              </div>
+
+              {/* Indikator risiko real-time */}
+              <div className="mt-6 text-sm text-gray-700 italic">
+                Risiko sementara: {" "}
+                <span
+                  className={
+                    score <= 5
+                      ? "text-green-700 font-semibold"
+                      : score <= 10
+                      ? "text-yellow-700 font-semibold"
+                      : score <= 15
+                      ? "text-orange-700 font-semibold"
+                      : "text-red-700 font-semibold"
+                  }
+                >
+                  {score <= 5
+                    ? "Rendah"
+                    : score <= 10
+                    ? "Sedang"
+                    : score <= 15
+                    ? "Cukup Tinggi"
+                    : "Tinggi"}
+                </span>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>
