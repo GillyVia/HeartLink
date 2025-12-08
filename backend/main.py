@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
+import joblib
+import numpy as np
+import pandas as pd
 import os
 import shutil
 import models, schemas, crud
@@ -15,8 +18,22 @@ from database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="HeartLink API", version="1.0")
 
-# Folder upload foto profil
+# =========================================
+#  SETUP PATH & LOAD MODEL DECISION TREE
+# =========================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "models_ml", "decision_tree_heart.pkl")
+
+# Pastikan file model ada
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(f"❌ Model file not found at: {MODEL_PATH}")
+
+model = joblib.load(MODEL_PATH)
+print("✅ Decision Tree model loaded successfully!")
+
+# =========================================
+#  FOLDER UPLOAD FOTO
+# =========================================
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_FOLDER), name="uploads")
@@ -77,7 +94,6 @@ def get_profile(user_id: int, db: Session = Depends(get_db)):
         "foto": foto_url,
     }
 
-
 @app.put("/profile/{user_id}")
 async def update_profile(
     user_id: int,
@@ -114,21 +130,38 @@ async def update_profile(
     return {"message": "Profil berhasil diperbarui", "foto": f"http://127.0.0.1:8000{user.foto}"}
 
 # =========================================
-#  MODEL AI (dummy)
+#  MODEL AI - Decision Tree
 # =========================================
 class Input(BaseModel):
-    answers: list[int]
+    age: int
+    gender: int
+    height: int
+    weight: int
+    ap_hi: int
+    ap_lo: int
+    cholesterol: int
+    gluc: int
+    smoke: int
+    alco: int
+    active: int
 
 @app.post("/predict")
 def predict(data: Input):
-    total = sum(data.answers)
-    if total <= 8:
+    # Ubah input ke DataFrame
+    df_input = pd.DataFrame([data.dict()])
+
+    # Prediksi probabilitas
+    proba = model.predict_proba(df_input)[0][1]
+
+    # Tentukan tingkat risiko
+    if proba < 0.3:
         risk = "Rendah"
-    elif 9 <= total <= 17:
+    elif proba < 0.7:
         risk = "Sedang"
     else:
         risk = "Tinggi"
-    return {"risk": risk}
+
+    return {"risk": risk, "probability": float(proba)}
 
 # =========================================
 #  AUTENTIKASI
