@@ -1,48 +1,71 @@
-import React from "react";
+"use client";
 import { FaMapMarkerAlt, FaWhatsapp, FaEnvelope } from "react-icons/fa";
 
 export default function HubungiKami() {
   return (
     <div
-      className="min-h-screen flex items-center justify-center"
-      style={{
-        backgroundImage: "url('/background.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        position: "relative",
-      }}
+      className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 bg-cover bg-center relative"
+      style={{ backgroundImage: "url('/HubungiKami.jpeg')" }}
     >
-      <div className="absolute inset-0 bg-black bg-opacity-60 z-0" />
-      <div className="relative z-10 w-full max-w-2xl mx-auto flex flex-col items-center">
-        <h1 className="text-5xl font-bold text-white mb-2 mt-12 text-center font-playpen">
-          Hubungi Kami
-        </h1>
-        <p className="text-lg text-white mb-8 text-center font-playpen">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40"></div>
+
+      <div className="relative z-10 text-center text-white mb-8">
+        <h1 className="text-4xl font-extrabold drop-shadow-lg">Hubungi Kami</h1>
+        <p className="text-lg mt-2 drop-shadow-md">
           Jika ada yang ingin ditanya & mau dibantu
         </p>
-        <div className="bg-[#8eb69b] rounded-[40px] px-8 py-6 w-full max-w-xl shadow-lg flex flex-col items-center">
-          <h2 className="text-2xl font-bold text-center mb-6 font-playpen">Get in touch</h2>
-          <div className="w-full flex flex-col gap-4">
-            <div className="flex items-center gap-4">
-              <FaMapMarkerAlt className="text-2xl text-[#2d4739]" />
-              <div>
-                <span className="font-bold text-lg text-[#2d4739] font-playpen">Address</span>
-                <div className="text-[#2d4739] font-playpen text-base">Jl. Ahmad Yani, Tlk. Tering, Kota Batam, Kepulauan Riau</div>
-              </div>
+      </div>
+
+      {/* CARD UTAMA */}
+      <div
+        className="relative z-10 w-full max-w-3xl bg-[#7FAF96] bg-opacity-95
+        rounded-[50px] p-8 flex flex-col items-center shadow-2xl"
+      >
+        {/* Title */}
+        <h2 className="text-2xl font-bold text-black mb-6">Get in touch</h2>
+
+        {/* INNER CARD */}
+        <div
+          className="bg-[#C9E3D4] w-[95%] rounded-[35px] p-8 flex flex-col gap-8
+          shadow-md"
+        >
+          {/* Address */}
+          <div className="flex items-start gap-5">
+            <div className="text-3xl text-black">
+              <FaMapMarkerAlt />
             </div>
-            <div className="flex items-center gap-4">
-              <FaWhatsapp className="text-2xl text-[#2d4739]" />
-              <div>
-                <span className="font-bold text-lg text-[#2d4739] font-playpen">WhatsApp</span>
-                <div className="text-[#2d4739] font-playpen text-base">+62-822-8782-5959</div>
-              </div>
+            <div>
+              <p className="font-bold text-lg text-black">Address</p>
+              <p className="text-sm text-black leading-tight">
+                Jl. Ahmad Yani, Tlk. Tering, Kota Batam, Kepulauan Riau
+              </p>
             </div>
-            <div className="flex items-center gap-4">
-              <FaEnvelope className="text-2xl text-[#2d4739]" />
-              <div>
-                <span className="font-bold text-lg text-[#2d4739] font-playpen">Email</span>
-                <div className="text-[#2d4739] font-playpen text-base">heartlink4@gmail.com</div>
-              </div>
+          </div>
+
+          {/* WhatsApp */}
+          <div className="flex items-start gap-5">
+            <div className="text-3xl text-black">
+              <FaWhatsapp />
+            </div>
+            <div>
+              <p className="font-bold text-lg text-black">WhatsApp</p>
+              <p className="text-sm text-black leading-tight">
+                +62-822-8782-5959
+              </p>
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="flex items-start gap-5">
+            <div className="text-3xl text-black">
+              <FaEnvelope />
+            </div>
+            <div>
+              <p className="font-bold text-lg text-black">Email</p>
+              <p className="text-sm text-black leading-tight">
+                heartlink4@gmail.com
+              </p>
             </div>
           </div>
         </div>
