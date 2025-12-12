@@ -36,9 +36,6 @@ export default function LaporGejala() {
     "Apakah tekanan darah Anda tidak stabil?",
   ];
 
-  // === Bobot pertanyaan kritis ===
-  const criticalIndices = [3, 4, 5, 7, 8, 9, 11, 19, 24];
-
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(25).fill(0));
   const [score, setScore] = useState(0);
@@ -47,26 +44,8 @@ export default function LaporGejala() {
   const handleAnswer = async (value: number) => {
     const updated = [...answers];
     updated[index] = value;
-
-    // hitung skor
-    let newScore = score;
-    if (value === 1) {
-      if (criticalIndices.includes(index)) {
-        newScore += 3; // jawaban kritis berbobot 3
-      } else {
-        newScore += 1; // jawaban biasa berbobot 1
-      }
-    }
-
     setAnswers(updated);
-    setScore(newScore);
-
-    // 🧠 Early Stop Logic
-    if (newScore >= 12) {
-      // nilai total cukup untuk menyimpulkan risiko tinggi
-      handleSubmit(updated, newScore);
-      return;
-    }
+    setScore(score + value);
 
     if (index < questions.length - 1) {
       setIndex(index + 1);
@@ -75,19 +54,47 @@ export default function LaporGejala() {
     }
   };
 
-  const handleSubmit = async (data: number[], scoreVal: number) => {
-    let risk = "Rendah";
-    if (scoreVal <= 8) risk = "Rendah";
-    else if (scoreVal <= 14) risk = "Sedang";
-    else risk = "Tinggi";
+  // === Submit ke model Decision Tree ===
+  const handleSubmit = async (data: number[]) => {
+    const body = {
+      age: data[0] ? 55 : 30,
+      gender: data[1],
+      ap_hi: data[7] ? 150 : 120,
+      ap_lo: data[24] ? 95 : 80,
+      cholesterol: data[8] ? 2 : 1,
+      gluc: data[9] ? 2 : 1,
+      smoke: data[3],
+      alco: data[4],
+      active: data[5] ? 0 : 1,
+      height: 165,
+      weight: data[10] ? 85 : 65,
+    };
 
-    router.push(`/hasil-skrining?risk=${risk}`);
+    try {
+      const res = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const result = await res.json();
+      router.push(
+        `/hasil-skrining?risk=${result.risk}&prob=${result.probability.toFixed(2)}`
+      );
+    } catch (err) {
+      console.error("❌ Gagal menghubungi server backend:", err);
+      alert("Terjadi kesalahan koneksi ke server.");
+    }
   };
 
-  // Progress visual (0–100%)
+  // === Progress bar ===
   const progress = ((index + 1) / questions.length) * 100;
 
-  // Warna dinamis progress bar (berdasarkan skor)
+  // === Risiko sementara ===
+  let riskLabel = "Rendah";
+  if (score >= 10 && score < 18) riskLabel = "Sedang";
+  else if (score >= 18) riskLabel = "Tinggi";
+
   const riskColor =
     riskLabel === "Rendah"
       ? "text-green-700"
@@ -96,9 +103,9 @@ export default function LaporGejala() {
       : "text-red-700";
 
   return (
-    <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center py-8 px-4 transition-all duration-300">
-      {/* ===== Header ===== */}
-      <div className="w-full max-w-5xl flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center py-6 px-6 relative">
+      {/* Header */}
+      <div className="w-full max-w-6xl flex justify-between items-center mb-6">
         <button
           onClick={() => router.push("/dashboard")}
           className="flex items-center gap-2 text-lg font-bold text-[#1E3A2E]"
