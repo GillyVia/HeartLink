@@ -22,7 +22,7 @@ app = FastAPI(title="HeartLink API", version="1.0")
 #  SETUP PATH & LOAD MODEL DECISION TREE
 # =========================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "models_ml", "decision_tree_heart.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "models_ml", "decision_tree_heart_v2.pkl")
 
 # Pastikan file model ada
 if not os.path.exists(MODEL_PATH):
@@ -151,17 +151,42 @@ def predict(data: Input):
     df_input = pd.DataFrame([data.dict()])
 
     # Prediksi probabilitas
-    proba = model.predict_proba(df_input)[0][1]
+    proba = float(model.predict_proba(df_input)[0][1])
+
+    # --- Normalisasi prediksi agar lebih seimbang ---
+    # Model Decision Tree kadang menghasilkan nilai ekstrem 0.0 / 1.0
+    # Kita haluskan agar zona "Sedang" muncul lebih realistis
+    calibrated_proba = np.clip(0.5 * proba + 0.25, 0.0, 1.0)
 
     # Tentukan tingkat risiko
-    if proba < 0.3:
+    if calibrated_proba < 0.4:
         risk = "Rendah"
-    elif proba < 0.7:
+    elif calibrated_proba < 0.65:
         risk = "Sedang"
     else:
         risk = "Tinggi"
 
-    return {"risk": risk, "probability": float(proba)}
+    return {
+        "risk": risk,
+        "probability": round(calibrated_proba, 3)
+    }
+
+# =========================================
+#  ENDPOINT RIWAYAT SKRINNING (BARU)
+# =========================================
+@app.post("/riwayat", response_model=schemas.RiwayatResponse)
+def save_riwayat(data: schemas.RiwayatCreate, db: Session = Depends(get_db)):
+    user = crud.get_user_by_id(db, data.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+    return crud.create_riwayat(db, data)
+
+@app.get("/riwayat/{user_id}", response_model=list[schemas.RiwayatResponse])
+def get_riwayat(user_id: int, db: Session = Depends(get_db)):
+    user = crud.get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+    return crud.get_riwayat_by_user(db, user_id)
 
 # =========================================
 #  AUTENTIKASI

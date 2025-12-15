@@ -18,7 +18,7 @@ export default function Register() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-
+    
     if (res.ok) {
       alert("Registrasi berhasil!");
       window.location.href = "/login";

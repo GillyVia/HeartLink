@@ -58,14 +58,14 @@ export default function Login() {
             type="email"
             placeholder="Email address"
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg"
+            className="w-full px-3 py-2 mb-4 border border-black-300 rounded-lg text-gray-800 placeholder-gray-500"
           />
 
           <input
             type="password"
             placeholder="Password"
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className="w-full px-3 py-2 mb-6 border border-gray-300 rounded-lg"
+            className="w-full px-3 py-2 mb-6 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-500"
           />
 
           <button

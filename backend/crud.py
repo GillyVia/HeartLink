@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-from models import User
+from models import User, Riwayat
 import schemas
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -51,3 +51,19 @@ def verify_user(db: Session, email: str, password: str):
         return None
 
     return user
+
+# === CRUD RIWAYAT SKRINNING ===
+def create_riwayat(db: Session, data: schemas.RiwayatCreate):
+    riwayat = Riwayat(
+        user_id=data.user_id,
+        risk=data.risk,
+        probability=data.probability,
+        answers=data.answers
+    )
+    db.add(riwayat)
+    db.commit()
+    db.refresh(riwayat)
+    return riwayat
+
+def get_riwayat_by_user(db: Session, user_id: int):
+    return db.query(Riwayat).filter(Riwayat.user_id == user_id).order_by(Riwayat.date.desc()).all()

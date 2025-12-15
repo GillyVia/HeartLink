@@ -6,6 +6,7 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 export default function LaporGejala() {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // === 25 Pertanyaan Gejala ===
   const questions = [
@@ -42,6 +43,8 @@ export default function LaporGejala() {
 
   // === Handle Jawaban ===
   const handleAnswer = async (value: number) => {
+    if (isSubmitting) return; // 🔒 cegah klik ganda
+
     const updated = [...answers];
     updated[index] = value;
     setAnswers(updated);
@@ -54,8 +57,11 @@ export default function LaporGejala() {
     }
   };
 
-  // === Submit ke model Decision Tree ===
+  // === Submit ke model Decision Tree + Simpan otomatis ke DB ===
   const handleSubmit = async (data: number[]) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const body = {
       age: data[0] ? 55 : 30,
       gender: data[1],
@@ -76,21 +82,48 @@ export default function LaporGejala() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       const result = await res.json();
+
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user?.id;
+
+      if (userId) {
+        await fetch("http://127.0.0.1:8000/riwayat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            risk: result.risk,
+            probability: result.probability,
+            answers: data,
+          }),
+        });
+      }
+
+      const existing = JSON.parse(localStorage.getItem("riwayat") || "[]");
+      const updatedHistory = [
+        ...existing,
+        {
+          date: new Date().toISOString(),
+          risk: result.risk,
+          probability: result.probability,
+          answers: data,
+        },
+      ];
+      localStorage.setItem("riwayat", JSON.stringify(updatedHistory));
+
       router.push(
         `/hasil-skrining?risk=${result.risk}&prob=${result.probability.toFixed(2)}`
       );
     } catch (err) {
-      console.error("❌ Gagal menghubungi server backend:", err);
-      alert("Terjadi kesalahan koneksi ke server.");
+      console.error("❌ Gagal menyimpan hasil skrining:", err);
+      alert("Terjadi kesalahan saat menyimpan data.");
+      setIsSubmitting(false);
     }
   };
 
-  // === Progress bar ===
   const progress = ((index + 1) / questions.length) * 100;
 
-  // === Risiko sementara ===
   let riskLabel = "Rendah";
   if (score >= 10 && score < 18) riskLabel = "Sedang";
   else if (score >= 18) riskLabel = "Tinggi";
@@ -120,7 +153,6 @@ export default function LaporGejala() {
 
       {/* ===== Container Pertanyaan ===== */}
       <div className="bg-[#A9CDBB] relative rounded-[30px] p-6 w-full max-w-5xl shadow-lg overflow-hidden">
-        {/* Progress bar Risiko (top gradient) */}
         <div className="absolute top-0 left-0 w-full h-6 bg-gray-200 rounded-t-[30px]" />
         <motion.div
           className={`absolute top-0 left-0 h-6 bg-gradient-to-r ${riskColor} rounded-t-[30px]`}
@@ -128,7 +160,6 @@ export default function LaporGejala() {
           transition={{ duration: 0.3 }}
         />
 
-        {/* Circular arrows at top-left/top-right */}
         <div className="absolute top-4 left-4">
           <div
             className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center cursor-pointer"
@@ -146,17 +177,15 @@ export default function LaporGejala() {
           </div>
         </div>
 
-        {/* Area Pertanyaan (full card, hospital bg) */}
         <div
           className="flex justify-center items-center min-h-[480px] bg-center rounded-[20px] p-8 relative"
           style={{
             backgroundImage: `url('/latar.jpg')`,
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center 60%',
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center 60%",
           }}
         >
-          {/* overlay for better text contrast */}
           <div className="absolute inset-0 bg-black/20 rounded-[20px] pointer-events-none" />
           <AnimatePresence mode="wait">
             <motion.div
@@ -171,25 +200,26 @@ export default function LaporGejala() {
                 {questions[index]}
               </h2>
 
-              {/* Tombol Jawaban (pills besar) */}
+              {/* Tombol Jawaban */}
               <div className="flex flex-col items-center gap-6">
                 <button
                   onClick={() => handleAnswer(1)}
-                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E]"
+                  disabled={isSubmitting}
+                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E] disabled:opacity-50"
                 >
                   YA
                 </button>
                 <button
                   onClick={() => handleAnswer(0)}
-                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E]"
+                  disabled={isSubmitting}
+                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E] disabled:opacity-50"
                 >
                   TIDAK
                 </button>
               </div>
 
-              {/* Indikator risiko real-time */}
               <div className="mt-6 text-sm text-gray-700 italic">
-                Risiko sementara: {" "}
+                Risiko sementara:{" "}
                 <span
                   className={
                     score <= 5

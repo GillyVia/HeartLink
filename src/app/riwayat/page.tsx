@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { FaCalendarAlt, FaHeartbeat } from "react-icons/fa";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import {
+  FaCalendarAlt,
+  FaHeartbeat,
+  FaBars,
+  FaHome,
+  FaUser,
+  FaQuestionCircle,
+  FaHistory,
+  FaPaperPlane,
+} from "react-icons/fa";
 import {
   LineChart,
   Line,
@@ -15,25 +25,38 @@ import {
 export default function RiwayatPage() {
   const [riwayat, setRiwayat] = useState<any[]>([]);
   const [periode, setPeriode] = useState("all");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
-  // === FORMAT TANGGAL ===
-  const formatTanggal = (value: any) => {
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("id-ID");
-  };
+  // Tutup sidebar jika klik di luar
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        setSidebarOpen(false);
+      }
+    };
+    if (sidebarOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sidebarOpen]);
 
-  const formatWaktu = (value: any) => {
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? "-" : d.toLocaleTimeString("id-ID");
-  };
-
-  // === Ambil riwayat dari localStorage ===
+  // Ambil data riwayat
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("riwayat") || "[]");
     setRiwayat(data);
   }, []);
 
-  // === Semua pertanyaan ===
+  // Format tanggal & waktu
+  const formatTanggal = (v: any) => {
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("id-ID");
+  };
+  const formatWaktu = (v: any) => {
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? "-" : d.toLocaleTimeString("id-ID");
+  };
+
+  // Semua pertanyaan
   const questions = [
     "Apakah Anda berusia di atas 50 tahun?",
     "Apakah Anda berjenis kelamin pria?",
@@ -62,46 +85,80 @@ export default function RiwayatPage() {
     "Apakah tekanan darah Anda tidak stabil?",
   ];
 
-  // === FILTER PERIODE ===
+  // Filter periode
   const filtered = (() => {
     const now = new Date();
-
     if (periode === "all") return riwayat;
 
     return riwayat.filter((item) => {
       const d = new Date(item.date);
-
       if (periode === "week") {
         const minus7 = new Date();
         minus7.setDate(now.getDate() - 7);
         return d >= minus7;
       }
-
-      if (periode === "month") {
-        return (
-          d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-        );
-      }
-
-      if (periode === "year") {
-        return d.getFullYear() === now.getFullYear();
-      }
-
+      if (periode === "month")
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      if (periode === "year") return d.getFullYear() === now.getFullYear();
       return true;
     });
   })();
 
-  // === Data grafik ===
-  const grafikData = filtered.map((item) => ({
-    date: formatTanggal(item.date),
-    risk: item.risk === "Rendah" ? 1 : item.risk === "Sedang" ? 2 : 3,
+  const grafikData = filtered.map((i) => ({
+    date: formatTanggal(i.date),
+    risk: i.risk === "Rendah" ? 1 : i.risk === "Sedang" ? 2 : 3,
   }));
 
   return (
-    <div className="min-h-screen bg-[#EAF3EF] p-6 flex flex-col items-center">
-      <h1 className="text-3xl font-extrabold text-[#1E3A2E] mb-6">
-        Riwayat Skrining
-      </h1>
+    <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center relative">
+      {/* Overlay klik luar */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/10 z-10"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
+      {/* SIDEBAR */}
+    <aside
+  ref={sidebarRef}
+  className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-20 transform transition-all duration-500 ease-in-out 
+  ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
+>
+  <div className="flex items-center justify-center px-4 py-4 border-b border-white/30">
+    <h2 className="text-xl font-bold">Menu</h2>
+  </div>
+
+        <nav className="flex-1 px-4 py-6 space-y-3 font-semibold">
+          <a href="/dashboard" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaHome /> Beranda
+          </a>
+          <a href="/profile" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaUser /> Profil
+          </a>
+          <a href="/faq" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaQuestionCircle /> FAQ
+          </a>
+          <a href="/riwayat" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+            <FaHistory /> Riwayat
+          </a>
+          <a href="/hubungi-kami" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+            <FaPaperPlane /> Hubungi Kami
+          </a>
+        </nav>
+      </aside>
+
+      {/* HEADER */}
+      <div className="w-full max-w-5xl flex justify-between items-center mb-6 mt-6 px-6">
+        <FaBars
+          className="text-3xl text-[#1E3A2E] cursor-pointer hover:scale-110 transition"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        />
+        <h1 className="text-3xl font-extrabold text-[#1E3A2E]">
+          Riwayat Skrining
+        </h1>
+        <div className="w-6" /> {/* spacer */}
+      </div>
 
       {/* FILTER */}
       <select
@@ -120,7 +177,6 @@ export default function RiwayatPage() {
         <h2 className="font-bold text-lg mb-4 flex items-center gap-2 text-[#1E3A2E]">
           <FaHeartbeat /> Grafik Risiko
         </h2>
-
         {grafikData.length === 0 ? (
           <p className="text-gray-500 italic text-center py-10">
             Belum ada data grafik.
@@ -139,7 +195,7 @@ export default function RiwayatPage() {
       </div>
 
       {/* LIST RIWAYAT */}
-      <div className="w-full max-w-3xl space-y-6">
+      <div className="w-full max-w-3xl space-y-6 px-6 pb-10">
         {filtered.length === 0 ? (
           <p className="text-gray-500 italic text-center">
             Belum ada riwayat skrining.
@@ -153,21 +209,14 @@ export default function RiwayatPage() {
                 key={index}
                 className="bg-white p-6 rounded-3xl shadow-md border border-[#D6E8DE] hover:shadow-lg transition"
               >
-                {/* Header Card */}
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="font-bold text-[#1E3A2E]">
-                      {formatTanggal(item.date)}
-                    </p>
-
-                    {/* Waktu HANYA muncul jika valid */}
+                    <p className="font-bold text-[#1E3A2E]">{formatTanggal(item.date)}</p>
                     <p className="text-sm text-gray-600 flex items-center gap-1">
                       {formatWaktu(item.date) !== "-" && <FaCalendarAlt />}
                       {formatWaktu(item.date) !== "-" ? formatWaktu(item.date) : "-"}
                     </p>
                   </div>
-
-                  {/* BADGE */}
                   <span
                     className={`px-4 py-2 rounded-full text-white font-bold ${
                       item.risk === "Rendah"
@@ -181,18 +230,14 @@ export default function RiwayatPage() {
                   </span>
                 </div>
 
-                {/* DETAIL JAWABAN */}
                 <details className="mt-4">
                   <summary className="cursor-pointer text-[#164A3C] font-semibold">
                     Lihat Detail Jawaban
                   </summary>
-
                   <div className="mt-3 bg-[#F4FAF7] rounded-xl p-4 max-h-64 overflow-y-auto">
                     {item.answers?.map((ans: number, i: number) => (
                       <div key={i} className="border-b py-2">
-                        <p className="font-bold text-sm text-gray-800">
-                          {questions[i]}
-                        </p>
+                        <p className="font-bold text-sm text-gray-800">{questions[i]}</p>
                         <p className="text-[#1E3A2E] font-semibold">
                           {ans === 1 ? "Ya" : "Tidak"}
                         </p>

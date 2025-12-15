@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON
+from sqlalchemy.orm import relationship
 from database import Base
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "user"
@@ -17,3 +19,18 @@ class User(Base):
     kewarganegaraan = Column(String(100), default="")
     no_hp = Column(String(20), default="")
     foto = Column(String(255), default="")
+    
+    riwayat = relationship("Riwayat", back_populates="user", cascade="all, delete")
+    
+    # === MODEL RIWAYAT SKRINNING ===
+class Riwayat(Base):
+    __tablename__ = "riwayat"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    risk = Column(String(50))
+    probability = Column(Float)
+    answers = Column(JSON)
+    date = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="riwayat")
