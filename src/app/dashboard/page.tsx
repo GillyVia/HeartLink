@@ -19,7 +19,6 @@ export default function Dashboard() {
   const newsContainerRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Tutup sidebar jika klik di luar
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
@@ -30,7 +29,6 @@ export default function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
 
-  // Ambil nama user
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -45,13 +43,11 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  // Logout
   const handleLogout = () => {
     localStorage.removeItem("user");
     router.push("/login");
   };
 
-  // Scroll manual news
   const scrollNews = (direction: "left" | "right") => {
     if (newsContainerRef.current) {
       const scrollAmount = direction === "left" ? -500 : 500;
@@ -62,7 +58,6 @@ export default function Dashboard() {
     }
   };
 
-  // Auto-slide berita
   useEffect(() => {
     const cardWidth = 500;
     const totalCards = 4;
@@ -81,7 +76,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Update indikator scroll
   const handleScroll = () => {
     if (newsContainerRef.current) {
       const scrollLeft = newsContainerRef.current.scrollLeft;
@@ -93,35 +87,36 @@ export default function Dashboard() {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center flex flex-col items-center font-sans relative"
-      style={{ backgroundImage: "url('/background.jpg')" }}
+      className="font-playpen min-h-screen bg-cover bg-center flex flex-col items-center relative z-[999]"
     >
-      <div className="absolute inset-0 bg-[#EAF3EF]/80 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-[#ffffff]/80 backdrop-blur-sm"></div>
 
-      {/* HEADER */}
-      <header className="relative z-20 bg-[#A0C4A9]/90 w-full flex justify-between items-center px-6 py-4 rounded-b-[60px] shadow-md backdrop-blur-md">
-        <div className="flex items-center gap-3 font-bold text-lg text-[#1E3A2E]">
-          <FaBars
-            className="text-2xl cursor-pointer hover:scale-110 transition"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          />
-          <span>
-            Halo, <span className="italic">{userName}</span> 👋
-          </span>
+      <header className="relative w-full z-20">
+        <div className="absolute top-0 left-0 w-full h-[220px] bg-[var(--brand-green)] rounded-b-[120px]"></div>
+
+        <div className="relative flex justify-between items-center px-6 py-6">
+          <div className="flex items-center gap-3 font-bold text-lg text-[#1E3A2E]">
+            <FaBars
+              className="text-2xl cursor-pointer hover:scale-110 transition"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            />
+            <span>
+              Halo, <span className="italic">{userName}</span> 👋
+            </span>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="bg-[var(--brand-green)] hover:bg-[var(--brand-green)]/80"
+          >
+            <FaSignOutAlt className="text-xl" />
+          </button>
         </div>
-
-        <button
-          onClick={handleLogout}
-          className="bg-[#5D7E69] text-white p-2 rounded-full hover:bg-[#4b6654] transition duration-300 shadow-md"
-        >
-          <FaSignOutAlt className="text-xl" />
-        </button>
       </header>
 
-      {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
-        className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-30 transform transition-all duration-500 ease-in-out 
+        className={`fixed top-0 left-0 h-full bg-[var(--sidebar-green)] text-[#1E3A2E] rounded-r-[25px] shadow-md z-30 transform transition-all duration-500 ease-in-out 
         ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
       >
         <div className="flex items-center justify-between px-4 py-4 border-b border-white/30">
@@ -151,10 +146,9 @@ export default function Dashboard() {
         </nav>
       </aside>
 
-      {/* LAPOR GEJALA */}
       <div
         onClick={() => router.push("/lapor-gejala")}
-        className="relative z-10 bg-white/90 mt-10 rounded-[40px] shadow-lg px-10 py-6 flex flex-col items-center text-center w-[80%] max-w-4xl cursor-pointer hover:scale-[1.02] transition border border-white/50 backdrop-blur-md"
+        className="relative z-20 bg-white/90 mt-10 rounded-[40px] shadow-lg px-10 py-6 flex flex-col items-center text-center w-[80%] max-w-4xl cursor-pointer hover:scale-[1.02] transition border border-white/50 backdrop-blur-md"
       >
         <img src="/heart.png" alt="heart" className="w-24 h-24 mb-3 animate-pulse" />
         <h2 className="text-2xl font-extrabold text-[#2C423F] hover:text-[#3E6954] transition">
@@ -162,10 +156,7 @@ export default function Dashboard() {
         </h2>
       </div>
 
-      {/* FITUR GRID — NEW UI (SAMA SEPERTI GAMBAR) */}
       <div className="relative z-10 mt-10 grid grid-cols-2 sm:grid-cols-4 gap-5 px-4">
-
-        {/* Profil */}
         <div
           onClick={() => router.push("/profile")}
           className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
@@ -174,7 +165,6 @@ export default function Dashboard() {
           <p className="font-bold text-[#1B352B]">Profil</p>
         </div>
 
-        {/* FAQ */}
         <div
           onClick={() => router.push("/faq")}
           className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
@@ -183,7 +173,6 @@ export default function Dashboard() {
           <p className="font-bold text-[#1B352B]">FAQ</p>
         </div>
 
-        {/* Hubungi Kami */}
         <div
           onClick={() => router.push("/hubungi-kami")}
           className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
@@ -194,7 +183,6 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Riwayat */}
         <div
           onClick={() => router.push("/riwayat")}
           className="flex flex-col items-center justify-center bg-white rounded-[35px] border-4 border-[#315D47] w-36 h-36 cursor-pointer hover:scale-105 transition shadow-sm"
@@ -206,7 +194,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* BERITA */}
+      {/* ========================= BERITA ============================ */}
+
       <div className="relative z-10 mt-14 w-[90%] max-w-7xl">
         <h3 className="text-3xl font-extrabold text-[#1E3A2E] mb-6 text-center flex items-center justify-center gap-2">
           Berita Kesehatan Terbaru <span className="text-2xl">🩺</span>
@@ -218,6 +207,7 @@ export default function Dashboard() {
         >
           ‹
         </button>
+
         <button
           onClick={() => scrollNews("right")}
           className="absolute right-0 top-1/2 -translate-y-1/2 bg-[#A0C4A9]/90 text-white p-3 rounded-full shadow-md hover:bg-[#5D7E69] hover:scale-110 transition z-20"
@@ -233,45 +223,53 @@ export default function Dashboard() {
           {[
             {
               img: "/news1.jpg",
-              title: "Pola Makan Sehat untuk Jantung Kuat 💚",
-              desc: "Menjaga kesehatan jantung dimulai dari pola makan seimbang.",
-              author: "Dokter Kardiologi Nasional",
-              time: "2 jam yang lalu",
+              title: "Penelitian Baru: Gaya Hidup Pengaruhi Resiko Jantung",
+              desc: "Angka kasus jantung usia muda terus meningkat karena kebiasaan buruk.",
+              author: "Health.id",
+              time: "2 menit lalu",
             },
             {
               img: "/news2.jpg",
-              title: "Pentingnya Olahraga Teratur 🏃‍♂️",
-              desc: "Aktivitas ringan seperti jalan kaki 30 menit sehari menurunkan risiko penyakit jantung.",
-              author: "Komunitas Jantung Sehat",
-              time: "1 hari yang lalu",
+              title: "Olahraga Rutin Turunkan Penyakit Kardiovaskular",
+              desc: "Dokter menyarankan minimal 30 menit jalan kaki setiap hari.",
+              author: "Heart Media",
+              time: "6 menit lalu",
             },
             {
               img: "/news3.jpg",
-              title: "Kenali Gejala Dini Serangan Jantung 🚨",
-              desc: "Nyeri dada, lelah berlebihan, dan sesak napas bisa jadi tanda awal.",
-              author: "RS Pusat Jantung Jakarta",
-              time: "3 hari yang lalu",
+              title: "Menu Makanan Sehat untuk Lansia",
+              desc: "Tidak hanya sehat, makanan organik juga terbukti turunkan kolesterol.",
+              author: "Admin Kesehatan",
+              time: "11 menit lalu",
             },
             {
               img: "/news4.jpg",
-              title: "Dampak Stres terhadap Kesehatan Jantung 😥",
-              desc: "Tekanan emosional berlebih memicu detak jantung dan tekanan darah.",
-              author: "Psikolog Kesehatan Nasional",
-              time: "5 hari yang lalu",
+              title: "Tekanan Darah Ideal Wajib Dipahami",
+              desc: "Tekanan darah tidak stabil bisa sebabkan komplikasi serius.",
+              author: "HeartLink Med",
+              time: "20 menit lalu",
             },
           ].map((news, index) => (
             <div
               key={index}
               className="flex-shrink-0 w-[480px] bg-white/85 rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden backdrop-blur-sm transition hover:scale-[1.02] cursor-pointer border border-white/50"
             >
-              <img src={news.img} alt={news.title} className="w-full h-56 object-cover" />
+              <img
+                src={news.img}
+                alt={news.title}
+                className="w-full h-56 object-cover"
+              />
+
               <div className="p-5 flex flex-col justify-between h-[230px]">
                 <div>
                   <h4 className="font-bold text-[#1E3A2E] text-lg mb-2 hover:text-[#3E6954] transition">
                     {news.title}
                   </h4>
-                  <p className="text-sm text-gray-600 leading-snug">{news.desc}</p>
+                  <p className="text-sm text-gray-600 leading-snug">
+                    {news.desc}
+                  </p>
                 </div>
+
                 <p className="text-xs text-[#6CA48C] mt-3 italic">
                   {news.time} • {news.author}
                 </p>
@@ -280,7 +278,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Indikator */}
         <div className="flex justify-center mt-4 gap-2">
           {[0, 1, 2, 3].map((i) => (
             <div

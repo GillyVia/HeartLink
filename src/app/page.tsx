@@ -41,10 +41,16 @@ export default function LandingPage() {
       <div className="relative z-10 flex flex-col items-center pt-10 px-6">
         {/* Logo */}
         <div className="flex items-center gap-3 w-full max-w-6xl">
-          <img src="/LogoLanding.png" className="w-16 h-16" alt="HeartLink Logo" />
+          <img
+            src="/logo.png"
+            className="w-16 h-16"
+            alt="HeartLink Logo"
+          />
 
           <div>
-            <h1 className="text-2xl font-extrabold text-[#000000]">HeartLink</h1>
+            <h1 className="text-2xl font-extrabold text-[#000000]">
+              HeartLink
+            </h1>
             <p className="text-sm text-[#000000]">
               Perawatan Cerdas untuk Jantung yang Lebih Sehat
             </p>
@@ -65,16 +71,29 @@ export default function LandingPage() {
               technology.
             </p>
 
+            {/* Tombol Login */}
             <button
               onClick={() => router.push("/login")}
-              className="mt-6 bg-[#3b6049] text-white px-8 py-2 rounded-lg text-lg font-semibold shadow-md hover:bg-[#23456] transition"
+              className="mt-6 bg-[#3b6049] text-white px-8 py-2 rounded-lg text-lg font-semibold shadow-md 
+                         hover:bg-[#2e4f3d] transition"
             >
               Login
             </button>
+
+            {/* Link Register */}
+            <p className="mt-3 text-sm text-[#000000]">
+              Belum punya akun?{" "}
+              <span
+                onClick={() => router.push("/register")}
+                className="font-semibold text-[#3b6049] cursor-pointer hover:underline"
+              >
+                Daftar
+              </span>
+            </p>
           </div>
         </div>
 
-        {/* Lengkungan putih SESUAI DESAIN */}
+        {/* Lengkungan putih */}
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
           <svg
             className="relative block w-full h-[120px]"
@@ -96,7 +115,8 @@ export default function LandingPage() {
             {news.map((item, i) => (
               <div
                 key={i}
-                className="bg-white shadow-md rounded-xl overflow-hidden hover:scale-105 transition cursor-pointer"
+                className="bg-white shadow-md rounded-xl overflow-hidden 
+                           hover:scale-105 transition cursor-pointer"
               >
                 <img
                   src={item.img}
@@ -114,3 +134,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

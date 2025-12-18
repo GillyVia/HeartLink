@@ -176,35 +176,31 @@ export default function ProfilPage() {
   ></div>
 )}
 
-      {/* ===== SIDEBAR ===== */}
+      {/* SIDEBAR */}
       <aside
-        ref={sidebarRef}
-        className={`fixed top-0 left-0 h-full text-[#1E3A2E] sidebar-panel z-20
-        transform transition-all duration-500 ease-in-out 
-        ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
-      >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-white/30">
-          <h2 className="text-xl font-bold">Menu</h2>
-          <FaBars
-            className="text-2xl cursor-pointer hover:scale-110 transition"
-            onClick={() => setSidebarOpen(false)}
-          />
-        </div>
+  ref={sidebarRef}
+  className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-20 transform transition-all duration-500 ease-in-out 
+  ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
+>
+  <div className="flex items-center justify-center px-4 py-4 border-b border-white/30">
+    <h2 className="text-xl font-bold">Menu</h2>
+  </div>
+
 
         <nav className="flex-1 px-4 py-6 space-y-3 font-semibold">
-          <a href="/dashboard" className="flex items-center gap-3 hover-light-green px-4 py-2 rounded-lg transition">
+          <a href="/dashboard" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaHome /> Beranda
           </a>
-          <a href="/profile" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg text-[#1E3A2E] shadow-sm">
+          <a href="/profile" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">  
             <FaUser /> Profil
           </a>
-          <a href="/faq" className="flex items-center gap-3 hover-light-green px-4 py-2 rounded-lg transition">
+          <a href="/faq" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaQuestionCircle /> FAQ
           </a>
-          <a href="/riwayat" className="flex items-center gap-3 hover-light-green px-4 py-2 rounded-lg transition">
+          <a href="/riwayat" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaHistory /> Riwayat
           </a>
-          <a href="/hubungi-kami" className="flex items-center gap-3 hover-light-green px-4 py-2 rounded-lg transition">
+           <a href="/hubungi-kami" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaPaperPlane /> Hubungi Kami
           </a>
         </nav>
@@ -251,7 +247,7 @@ export default function ProfilPage() {
 
         {/* DATA DIRI */}
         <div className="mt-8 relative">
-          <div className="data-card">
+          <div className="data-card font-lato">
             <h3 className="text-xl font-bold text-[#1E3A2E] mb-2">Data diri</h3>
             <div className="edit-small" onClick={() => (editMode ? handleSave() : setEditMode(true))}>
               <FaEdit /> <span className="hidden sm:inline">{editMode ? "Simpan" : "ubah"}</span>

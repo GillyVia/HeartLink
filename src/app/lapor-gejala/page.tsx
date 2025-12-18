@@ -1,14 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LaporGejala() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // === 25 Pertanyaan Gejala ===
+  // === 25 pertanyaan ===
   const questions = [
     "Apakah Anda berusia di atas 50 tahun?",
     "Apakah Anda berjenis kelamin pria?",
@@ -37,108 +36,101 @@ export default function LaporGejala() {
     "Apakah tekanan darah Anda tidak stabil?",
   ];
 
+  const criticalIndices = [3, 4, 5, 7, 8, 9, 11, 19, 24];
+
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(25).fill(0));
   const [score, setScore] = useState(0);
 
-  // === Handle Jawaban ===
-  const handleAnswer = async (value: number) => {
-    if (isSubmitting) return; // 🔒 cegah klik ganda
-
+  const handleAnswer = (value: number) => {
     const updated = [...answers];
     updated[index] = value;
+
+    let newScore = score;
+    if (value === 1) {
+      newScore += criticalIndices.includes(index) ? 3 : 1;
+    }
+
     setAnswers(updated);
-    setScore(score + value);
+    setScore(newScore);
+
+    // Early stop
+    if (newScore >= 12) {
+      handleSubmit(updated, newScore);
+      return;
+    }
 
     if (index < questions.length - 1) {
       setIndex(index + 1);
     } else {
-      await handleSubmit(updated);
+      handleSubmit(updated, newScore);
     }
   };
 
-  // === Submit ke model Decision Tree + Simpan otomatis ke DB ===
-  const handleSubmit = async (data: number[]) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
+  // ============================================
+  //  SUBMIT DATA
+  // ============================================
+  const handleSubmit = async (data: number[], scoreVal: number) => {
+    let risk = "Rendah";
+    if (scoreVal <= 8) risk = "Rendah";
+    else if (scoreVal <= 14) risk = "Sedang";
+    else risk = "Tinggi";
 
-    const body = {
-      age: data[0] ? 55 : 30,
-      gender: data[1],
-      ap_hi: data[7] ? 150 : 120,
-      ap_lo: data[24] ? 95 : 80,
-      cholesterol: data[8] ? 2 : 1,
-      gluc: data[9] ? 2 : 1,
-      smoke: data[3],
-      alco: data[4],
-      active: data[5] ? 0 : 1,
-      height: 165,
-      weight: data[10] ? 85 : 65,
+    // ========== SIMPAN LOCAL STORAGE ==========
+    const item = {
+      id: Date.now(),
+      tanggal: new Date().toISOString(),
+      score: scoreVal,
+      risk,
+      answers: data,
+      questions,
     };
 
+    const existing = JSON.parse(localStorage.getItem("riwayat") || "[]");
+    existing.push(item);
+    localStorage.setItem("riwayat", JSON.stringify(existing));
+
+    // ========== SIMPAN KE BACKEND ==========
     try {
-      const res = await fetch("http://127.0.0.1:8000/predict", {
+      const userId = localStorage.getItem("user_id");
+
+      await fetch("http://localhost:8000/riwayat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const result = await res.json();
-
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const userId = user?.id;
-
-      if (userId) {
-        await fetch("http://127.0.0.1:8000/riwayat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: userId,
-            risk: result.risk,
-            probability: result.probability,
-            answers: data,
-          }),
-        });
-      }
-
-      const existing = JSON.parse(localStorage.getItem("riwayat") || "[]");
-      const updatedHistory = [
-        ...existing,
-        {
-          date: new Date().toISOString(),
-          risk: result.risk,
-          probability: result.probability,
-          answers: data,
+        headers: {
+          "Content-Type": "application/json",
         },
-      ];
-      localStorage.setItem("riwayat", JSON.stringify(updatedHistory));
-
-      router.push(
-        `/hasil-skrining?risk=${result.risk}&prob=${result.probability.toFixed(2)}`
-      );
+        body: JSON.stringify({
+          user_id: Number(userId),
+          score: scoreVal,
+          hasil: risk,
+          tanggal: new Date().toISOString(),
+        }),
+      });
     } catch (err) {
-      console.error("❌ Gagal menyimpan hasil skrining:", err);
-      alert("Terjadi kesalahan saat menyimpan data.");
-      setIsSubmitting(false);
+      console.error("Gagal kirim ke server:", err);
     }
+
+    // ========== PINDAH KE HALAMAN HASIL ==========
+    router.push(`/hasil-skrining?risk=${risk}`);
   };
 
   const progress = ((index + 1) / questions.length) * 100;
 
-  let riskLabel = "Rendah";
-  if (score >= 10 && score < 18) riskLabel = "Sedang";
-  else if (score >= 18) riskLabel = "Tinggi";
-
+  // warna progress sesuai tingkat risiko
   const riskColor =
-    riskLabel === "Rendah"
-      ? "text-green-700"
-      : riskLabel === "Sedang"
-      ? "text-yellow-600"
-      : "text-red-700";
+    score <= 5
+      ? "from-green-400 to-green-300"
+      : score <= 10
+      ? "from-yellow-300 to-yellow-200"
+      : score <= 15
+      ? "from-orange-400 to-orange-300"
+      : "from-red-500 to-red-400";
 
   return (
-    <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center py-6 px-6 relative">
+    <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center py-8 px-4">
+
       {/* Header */}
-      <div className="w-full max-w-6xl flex justify-between items-center mb-6">
+      <div className="w-full max-w-5xl flex justify-between items-center mb-6">
         <button
           onClick={() => router.push("/dashboard")}
           className="flex items-center gap-2 text-lg font-bold text-[#1E3A2E]"
@@ -151,42 +143,54 @@ export default function LaporGejala() {
         </p>
       </div>
 
-      {/* ===== Container Pertanyaan ===== */}
+      {/* CARD */}
       <div className="bg-[#A9CDBB] relative rounded-[30px] p-6 w-full max-w-5xl shadow-lg overflow-hidden">
+
+        {/* progress background */}
         <div className="absolute top-0 left-0 w-full h-6 bg-gray-200 rounded-t-[30px]" />
+
+        {/* progress bar */}
         <motion.div
           className={`absolute top-0 left-0 h-6 bg-gradient-to-r ${riskColor} rounded-t-[30px]`}
           style={{ width: `${progress}%` }}
-          transition={{ duration: 0.3 }}
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.4 }}
         />
 
-        <div className="absolute top-4 left-4">
-          <div
-            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center cursor-pointer"
+        {/* tombol kiri */}
+        <div className="absolute top-4 left-4 z-20">
+          <button
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center"
             onClick={() => index > 0 && setIndex(index - 1)}
           >
             <FaArrowLeft />
-          </div>
+          </button>
         </div>
-        <div className="absolute top-4 right-4">
-          <div
-            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center cursor-pointer"
+
+        {/* tombol kanan */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center"
             onClick={() => index < questions.length - 1 && setIndex(index + 1)}
           >
             <FaArrowRight />
-          </div>
+          </button>
         </div>
 
+        {/* isi card */}
         <div
-          className="flex justify-center items-center min-h-[480px] bg-center rounded-[20px] p-8 relative"
+          className="flex justify-center items-center min-h-[520px] rounded-[20px] p-8 relative"
           style={{
-            backgroundImage: `url('/latar.jpg')`,
-            backgroundSize: "contain",
+            backgroundImage: `url('/Rumahsakit.png')`,
+            backgroundSize: "85%",
             backgroundRepeat: "no-repeat",
-            backgroundPosition: "center 60%",
+            backgroundPosition: "center",
+            opacity: 0.55,
           }}
         >
-          <div className="absolute inset-0 bg-black/20 rounded-[20px] pointer-events-none" />
+          <div className="absolute inset-0 bg-black/10 rounded-[20px]" />
+
           <AnimatePresence mode="wait">
             <motion.div
               key={index}
@@ -194,52 +198,38 @@ export default function LaporGejala() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -40 }}
               transition={{ duration: 0.4 }}
-              className="text-center max-w-2xl w-full"
+              className="text-center max-w-2xl w-full relative z-20"
             >
-              <h2 className="text-2xl md:text-3xl font-bold text-[#1E3A2E] mb-6 px-6 drop-shadow-md">
-                {questions[index]}
-              </h2>
+              <h2
+  className="text-2xl md:text-3xl font-extrabold
+             mb-6 bg-white/40 backdrop-blur-sm
+             px-6 py-3 rounded-xl inline-block"
+>
+  <span className="text-black drop-shadow-none">
+    {questions[index]}
+  </span>
+</h2>
 
-              {/* Tombol Jawaban */}
-              <div className="flex flex-col items-center gap-6">
+
+              {/* tombol jawaban */}
+              <div className="flex flex-col items-center gap-6 mt-6">
                 <button
                   onClick={() => handleAnswer(1)}
-                  disabled={isSubmitting}
-                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E] disabled:opacity-50"
+                  className="bg-white/80 backdrop-blur-sm w-56 md:w-80 py-4 rounded-[36px] 
+                  text-lg font-bold shadow-md text-[#1E3A2E]"
                 >
                   YA
                 </button>
+
                 <button
                   onClick={() => handleAnswer(0)}
-                  disabled={isSubmitting}
-                  className="bg-white w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md text-[#1E3A2E] disabled:opacity-50"
+                  className="bg-white/80 backdrop-blur-sm w-56 md:w-80 py-4 rounded-[36px] 
+                  text-lg font-bold shadow-md text-[#1E3A2E]"
                 >
                   TIDAK
                 </button>
               </div>
 
-              <div className="mt-6 text-sm text-gray-700 italic">
-                Risiko sementara:{" "}
-                <span
-                  className={
-                    score <= 5
-                      ? "text-green-700 font-semibold"
-                      : score <= 10
-                      ? "text-yellow-700 font-semibold"
-                      : score <= 15
-                      ? "text-orange-700 font-semibold"
-                      : "text-red-700 font-semibold"
-                  }
-                >
-                  {score <= 5
-                    ? "Rendah"
-                    : score <= 10
-                    ? "Sedang"
-                    : score <= 15
-                    ? "Cukup Tinggi"
-                    : "Tinggi"}
-                </span>
-              </div>
             </motion.div>
           </AnimatePresence>
         </div>

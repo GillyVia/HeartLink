@@ -1,16 +1,12 @@
 @import "tailwindcss";
 
+/* ===== ROOT COLOR ===== */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000; /* semua teks hitam */
 }
 
-/* Playpen Sans font (from Canva)
-   Place your font files in `public/fonts/` with these suggested names:
-   - PlaypenSans-Regular.woff2
-   - PlaypenSans-Bold.woff2
-   Then the browser will load them via the rules below.
-*/
+/* ===== FONT IMPORT (Playpen Sans) ===== */
 @font-face {
   font-family: 'Playpen Sans';
   src: url('/fonts/PlaypenSans-Regular.woff2') format('woff2'),
@@ -28,6 +24,7 @@
   font-display: swap;
 }
 
+/* ===== TAILWIND THEME ===== */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -35,19 +32,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ===== DARK MODE (tetap hitam) ===== */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #000000; /* teks tetap hitam */
   }
 }
 
+/* ===== GLOBAL BODY ===== */
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: var(--foreground); /* seluruh teks hitam */
   font-family: 'Playpen Sans', Arial, Helvetica, sans-serif;
 }
 
+/* ===== ANIMATION ===== */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -56,14 +56,14 @@ body {
   animation: fadeIn 0.8s ease-in-out forwards;
 }
 
-/* Custom styles for Profile page to match provided design */
+/* ===== CUSTOM COLORS ===== */
 :root {
-  /* Updated to Canva green: #8eb69b (142,182,155) */
   --brand-green: #8eb69b;
   --sidebar-green: #8eb69b;
   --muted-gray: #f3f5f6;
 }
 
+/* ===== COMPONENT STYLES (TIDAK DIUBAH) ===== */
 .app-bg {
   background-color: #F6F8F8;
 }
@@ -110,11 +110,12 @@ body {
   font-family: 'Playpen Sans', Arial, Helvetica, sans-serif;
 }
 
-/* Hover helper that uses a subtle tint of the brand green */
 .hover-light-green {
   transition: background-color 150ms ease-in-out;
 }
-.hover-light-green:hover { background-color: rgba(142,182,155,0.15); }
+.hover-light-green:hover {
+  background-color: rgba(142,182,155,0.15);
+}
 
 .data-card {
   background: #fff;
@@ -156,7 +157,12 @@ body {
   outline: none;
 }
 
-.value-text { width: 100%; text-align: left; display: block; padding: 6px 4px; }
+.value-text {
+  width: 100%;
+  text-align: left;
+  display: block;
+  padding: 6px 4px;
+}
 
 .edit-small {
   position: absolute;
@@ -169,5 +175,69 @@ body {
   cursor: pointer;
 }
 
-.profile-header-wrapper { position: relative; }
+.profile-header-wrapper {
+  position: relative;
+}
+.font-lato {
+  font-family: 'Lato', Arial, Helvetica, sans-serif;
+}
+
+/* =========================================================
+   FORCE SEMUA WARNA HIJAU → BRAND GREEN (#8EB69B)
+   ========================================================= */
+
+/* TEXT */
+.text-green-50,
+.text-green-100,
+.text-green-200,
+.text-green-300,
+.text-green-400,
+.text-green-500,
+.text-green-600,
+.text-green-700,
+.text-green-800,
+.text-green-900 {
+  color: var(--brand-green) !important;
+}
+
+/* BACKGROUND */
+.bg-green-50,
+.bg-green-100,
+.bg-green-200,
+.bg-green-300,
+.bg-green-400,
+.bg-green-500,
+.bg-green-600,
+.bg-green-700,
+.bg-green-800,
+.bg-green-900 {
+  background-color: var(--brand-green) !important;
+}
+
+/* BORDER */
+.border-green-50,
+.border-green-100,
+.border-green-200,
+.border-green-300,
+.border-green-400,
+.border-green-500,
+.border-green-600,
+.border-green-700,
+.border-green-800,
+.border-green-900 {
+  border-color: var(--brand-green) !important;
+}
+
+/* HOVER & FOCUS */
+.hover\:bg-green-500:hover,
+.hover\:bg-green-600:hover,
+.hover\:bg-green-700:hover {
+  background-color: var(--brand-green) !important;
+}
+
+.hover\:text-green-500:hover,
+.hover\:text-green-600:hover {
+  color: var(--brand-green) !important;
+}
+
 
