@@ -39,7 +39,6 @@ export default function ProfilPage() {
     file: null,
   });
 
-  // ✅ Tutup sidebar jika klik di luar area
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
@@ -50,18 +49,25 @@ export default function ProfilPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
 
-  // ✅ Ambil data user dari localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
       const parsed = JSON.parse(storedUser);
       setUserId(parsed.id);
-      fetchProfile(parsed.id);
+      fetchProfile();
     }
   }, []);
 
-  const fetchProfile = async (id: number) => {
-    const res = await fetch(`http://127.0.0.1:8000/profile/${id}`);
+  const fetchProfile = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const res = await fetch(`http://127.0.0.1:8000/profile/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
     if (res.ok) {
       const data = await res.json();
       setProfile((prev) => ({
@@ -82,23 +88,19 @@ export default function ProfilPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Jika sudah ada foto, minta konfirmasi sebelum mengganti
     if (profile.foto) {
       const confirmReplace = window.confirm("Apakah Anda ingin mengganti foto profil?");
       if (!confirmReplace) {
-        // reset input value agar event bisa muncul lagi jika user memilih file yang sama
         (e.target as HTMLInputElement).value = "";
         return;
       }
 
-      // jika user mengonfirmasi, tampilkan preview segera dan upload langsung
       const imageUrl = URL.createObjectURL(file);
       setProfile((prev) => ({ ...prev, foto: imageUrl, file }));
       void uploadProfilePhoto(file);
       return;
     }
 
-    // Jika belum ada foto sebelumnya, cukup tampilkan preview (tetap tidak auto-save)
     const imageUrl = URL.createObjectURL(file);
     setProfile((prev) => ({ ...prev, foto: imageUrl, file }));
   };
@@ -110,6 +112,13 @@ export default function ProfilPage() {
 
   const handleSave = async () => {
     if (!userId) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Token tidak ditemukan. Harap login ulang.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("nik", profile.nik);
     formData.append("ttl", profile.ttl);
@@ -119,8 +128,9 @@ export default function ProfilPage() {
     formData.append("no_hp", profile.noHp);
     if (profile.file) formData.append("foto", profile.file);
 
-    const res = await fetch(`http://127.0.0.1:8000/profile/${userId}`, {
+    const res = await fetch(`http://127.0.0.1:8000/profile/me`, {
       method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
@@ -137,10 +147,15 @@ export default function ProfilPage() {
     }
   };
 
-  // Mengupload foto profil ke backend segera
   const uploadProfilePhoto = async (file: File) => {
     if (!userId) {
       alert("ID user tidak ditemukan. Harap login ulang.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Token tidak ditemukan. Harap login ulang.");
       return;
     }
 
@@ -148,8 +163,9 @@ export default function ProfilPage() {
     formData.append("foto", file);
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/profile/${userId}`, {
+      const res = await fetch(`http://127.0.0.1:8000/profile/me`, {
         method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
@@ -168,30 +184,27 @@ export default function ProfilPage() {
 
   return (
     <div className="min-h-screen flex app-bg font-sans overflow-hidden relative">
-     {/* ===== Overlay klik luar (tanpa blur) ===== */}
-{sidebarOpen && (
-  <div
-    className="fixed inset-0 bg-black/10 z-10"
-    onClick={() => setSidebarOpen(false)}
-  ></div>
-)}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/10 z-10"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
 
-      {/* SIDEBAR */}
       <aside
-  ref={sidebarRef}
-  className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-20 transform transition-all duration-500 ease-in-out 
-  ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
->
-  <div className="flex items-center justify-center px-4 py-4 border-b border-white/30">
-    <h2 className="text-xl font-bold">Menu</h2>
-  </div>
-
+        ref={sidebarRef}
+        className={`fixed top-0 left-0 h-full bg-[#A0C4A9] text-[#1E3A2E] rounded-r-[25px] shadow-md z-20 transform transition-all duration-500 ease-in-out 
+        ${sidebarOpen ? "translate-x-0 opacity-100 w-64" : "-translate-x-full opacity-0 w-0"}`}
+      >
+        <div className="flex items-center justify-center px-4 py-4 border-b border-white/30">
+          <h2 className="text-xl font-bold">Menu</h2>
+        </div>
 
         <nav className="flex-1 px-4 py-6 space-y-3 font-semibold">
           <a href="/dashboard" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaHome /> Beranda
           </a>
-          <a href="/profile" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">  
+          <a href="/profile" className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
             <FaUser /> Profil
           </a>
           <a href="/faq" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
@@ -200,13 +213,12 @@ export default function ProfilPage() {
           <a href="/riwayat" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaHistory /> Riwayat
           </a>
-           <a href="/hubungi-kami" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
+          <a href="/hubungi-kami" className="flex items-center gap-3 hover:bg-[#CFE5DB] px-4 py-2 rounded-lg transition">
             <FaPaperPlane /> Hubungi Kami
           </a>
         </nav>
       </aside>
 
-      {/* ===== KONTEN PROFIL ===== */}
       <main
         className={`flex-1 p-6 transition-all duration-500 ease-in-out ${
           sidebarOpen ? "ml-64" : "ml-0"
@@ -217,7 +229,6 @@ export default function ProfilPage() {
           onClick={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        {/* HEADER PROFIL */}
         <div className="profile-header-wrapper mt-2 mb-6">
           <div className="profile-header-outline">
             <div className="relative">
@@ -245,12 +256,15 @@ export default function ProfilPage() {
           </div>
         </div>
 
-        {/* DATA DIRI */}
         <div className="mt-8 relative">
           <div className="data-card font-lato">
             <h3 className="text-xl font-bold text-[#1E3A2E] mb-2">Data diri</h3>
-            <div className="edit-small" onClick={() => (editMode ? handleSave() : setEditMode(true))}>
-              <FaEdit /> <span className="hidden sm:inline">{editMode ? "Simpan" : "ubah"}</span>
+            <div
+              className="edit-small"
+              onClick={() => (editMode ? handleSave() : setEditMode(true))}
+            >
+              <FaEdit />{" "}
+              <span className="hidden sm:inline">{editMode ? "Simpan" : "ubah"}</span>
             </div>
 
             <div className="mt-4">
@@ -275,11 +289,7 @@ export default function ProfilPage() {
                       <input
                         type="text"
                         name={key}
-                        value={
-                          typeof profile[key] === "string"
-                            ? (profile[key] as string)
-                            : ""
-                        }
+                        value={typeof profile[key] === "string" ? (profile[key] as string) : ""}
                         onChange={handleChange}
                         className="value-input"
                       />

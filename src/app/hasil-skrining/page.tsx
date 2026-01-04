@@ -67,7 +67,7 @@ export default function HasilSkrining() {
           </ResponsiveContainer>
 
           <p className="text-lg mt-6 text-gray-700">
-            Probabilitas Model:{" "}
+            Estimasi Risiko Berdasarkan Model:{" "}
             <span className="font-semibold">{prob}</span>
           </p>
           <p className={`text-2xl font-bold mt-2 ${getRiskColor(risk)}`}>

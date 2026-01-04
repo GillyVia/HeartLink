@@ -4,24 +4,63 @@ import { useRouter } from "next/navigation";
 export default function LandingPage() {
   const router = useRouter();
 
-  const news = [
-    {
-      img: "/news1.jpg",
-      title: "Waspada Gejala Dini Penyakit Jantung",
-    },
-    {
-      img: "/news2.jpg",
-      title: "Manfaat Olahraga Ringan untuk Kesehatan Jantung",
-    },
-    {
-      img: "/news3.jpg",
-      title: "Pola Makan Sehat untuk Cegah Penyakit Jantung",
-    },
-    {
-      img: "/news4.jpg",
-      title: "Kenali Tekanan Darah Normal Anda",
-    },
-  ];
+const news = [
+  {
+    img: "/news1jkt.jpg",
+    title: "Menkes: 600 Ribu Kematian Akibat Penyakit Jantung per Tahun di Indonesia",
+    desc: "Menkes mengungkap angka kematian akibat penyakit jantung di Indonesia sangat tinggi dan menjadi perhatian serius layanan kesehatan.",
+    author: "Media Indonesia",
+    url: "https://mediaindonesia.com/humaniora/807494/menkes-ungkap-600-ribu-kematian-akibat-penyakit-jantung-per-tahun-butuh-revolusi-puskesmas",
+  },
+  {
+    img: "/news2jkt.jpg",
+    title: "Risiko Sakit Jantung Meningkat Seiring Bertambahnya Usia",
+    desc: "Data Regsosek 2023 menunjukkan peningkatan risiko penyakit jantung pada kelompok usia lanjut di Indonesia.",
+    author: "Antara News",
+    url: "https://www.antaranews.com/berita/4634461/risiko-sakit-jantung-meningkat-seiring-wanita-bertambah-usia",
+  },
+  {
+    img: "/news3jkt.jpg",
+    title: "Penyakit Jantung Ancaman Serius yang Membutuhkan Kesadaran",
+    desc: "Penyakit jantung masih menjadi penyebab kematian tertinggi di Indonesia dan perlu pencegahan sejak dini.",
+    author: "Media Indonesia",
+    url: "https://mediaindonesia.com/humaniora/733576/penyakit-jantung-ancaman-serius-yang-membutuhkan-kesadaran-dan-inovasi",
+  },
+  {
+    img: "/news4.jpg",
+    title: "Berita Penyakit Jantung Terkini & Fakta Risiko",
+    desc: "Kumpulan berita terbaru mengenai penyakit jantung, pencegahan, dan gaya hidup sehat.",
+    author: "Detik Health",
+    url: "https://www.detik.com/tag/penyakit-jantung/",
+  },
+];
+
+{news.map((item, i) => (
+  <a
+    key={i}
+    href={item.url}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="bg-white shadow-md rounded-xl overflow-hidden 
+               hover:scale-105 transition cursor-pointer block"
+  >
+    <img
+      src={item.img}
+      alt={item.title}
+      className="w-full h-40 object-cover"
+    />
+    <div className="p-3">
+      <p className="text-sm font-bold text-center text-[#000000]">
+        {item.title}
+      </p>
+      <p className="text-xs text-gray-600 text-center mt-1">
+        {item.author}
+      </p>
+    </div>
+  </a>
+))}
+
+
 
   return (
     <div className="relative min-h-screen w-full font-playpen bg-[#F4F7F5] overflow-hidden">

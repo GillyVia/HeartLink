@@ -44,6 +44,7 @@ export default function Dashboard() {
   }, [router]);
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
     router.push("/login");
   };
@@ -222,36 +223,46 @@ export default function Dashboard() {
         >
           {[
             {
-              img: "/news1.jpg",
-              title: "Penelitian Baru: Gaya Hidup Pengaruhi Resiko Jantung",
-              desc: "Angka kasus jantung usia muda terus meningkat karena kebiasaan buruk.",
-              author: "Health.id",
+              img: "/news1jkt.jpg",
+              title: "Menkes: 600 Ribu Kematian Akibat Penyakit Jantung per Tahun di Indonesia",
+              desc: "Menkes mengungkap angka kematian akibat penyakit jantung di Indonesia sangat tinggi, dengan data estimasi yang mencapai ratusan ribu jiwa per tahun—menjadi perhatian serius bagi layanan kesehatan dan puskesmas di seluruh Indonesia.",
+              author: "Media Indonesia",
               time: "2 menit lalu",
+              url: "https://mediaindonesia.com/humaniora/807494/menkes-ungkap-600-ribu-kematian-akibat-penyakit-jantung-per-tahun-butuh-revolusi-puskesmas",
             },
             {
-              img: "/news2.jpg",
-              title: "Olahraga Rutin Turunkan Penyakit Kardiovaskular",
-              desc: "Dokter menyarankan minimal 30 menit jalan kaki setiap hari.",
-              author: "Heart Media",
+              img: "/news2jkt.jpg",
+              title: "Risiko Sakit Jantung Meningkat Seiring Bertambahnya Usia di Indonesia",
+              desc: "Data Regsosek 2023 menunjukkan angka kematian akibat penyakit jantung tetap tinggi di Indonesia. Artikel ini membahas prevalensi dan faktor risiko yang makin signifikan pada berbagai usia.",
+              author: "Antara News",
               time: "6 menit lalu",
+              url: "https://www.antaranews.com/berita/4634461/risiko-sakit-jantung-meningkat-seiring-wanita-bertambah-usia",
             },
             {
-              img: "/news3.jpg",
-              title: "Menu Makanan Sehat untuk Lansia",
-              desc: "Tidak hanya sehat, makanan organik juga terbukti turunkan kolesterol.",
-              author: "Admin Kesehatan",
+              img: "/news3jkt.jpg",
+              title: "Penyakit Jantung Ancaman Serius yang Membutuhkan Kesadaran dan Inovasi",
+              desc: "Bahasan tentang penyakit jantung sebagai ancaman serius di Indonesia, faktor risikonya, dan tantangan akses layanan kesehatan kardiovaskular.",
+              author: "Media Indonesia",
               time: "11 menit lalu",
+              url: "https://mediaindonesia.com/humaniora/733576/penyakit-jantung-ancaman-serius-yang-membutuhkan-kesadaran-dan-inovasi",
             },
             {
               img: "/news4.jpg",
-              title: "Tekanan Darah Ideal Wajib Dipahami",
-              desc: "Tekanan darah tidak stabil bisa sebabkan komplikasi serius.",
-              author: "HeartLink Med",
+              title: "Berita Penyakit Jantung Terkini & Fakta Risiko di Indonesia (Tag DetikHealth)",
+              desc: "Halaman berisi ringkasan berita terbaru tentang penyakit jantung di Indonesia, termasuk riset, pencegahan, dan hubungan gaya hidup dengan kesehatan jantung.",
+              author: "Detik Health (Tematis)",
               time: "20 menit lalu",
+              url: "https://www.detik.com/tag/penyakit-jantung/"
             },
           ].map((news, index) => (
+            <a
+             key={index}
+             href={news.url}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="block flex-shrink-0"
+    >
             <div
-              key={index}
               className="flex-shrink-0 w-[480px] bg-white/85 rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden backdrop-blur-sm transition hover:scale-[1.02] cursor-pointer border border-white/50"
             >
               <img
@@ -275,6 +286,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
+            </a>
           ))}
         </div>
 

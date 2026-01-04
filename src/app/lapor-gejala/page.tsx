@@ -7,128 +7,132 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function LaporGejala() {
   const router = useRouter();
 
-  // === 25 pertanyaan ===
+  // 25 pertanyaan (BRFSS aligned)
   const questions = [
-    "Apakah Anda berusia di atas 50 tahun?",
+    "Apakah usia Anda 55 tahun ke atas?",
     "Apakah Anda berjenis kelamin pria?",
-    "Apakah Anda memiliki riwayat keluarga dengan penyakit jantung?",
-    "Apakah Anda merokok secara aktif?",
-    "Apakah Anda sering mengonsumsi alkohol?",
-    "Apakah Anda kurang berolahraga (< 30 menit per hari)?",
-    "Apakah Anda sering makan makanan tinggi lemak?",
-    "Apakah Anda pernah didiagnosis hipertensi?",
-    "Apakah kadar kolesterol Anda tinggi?",
+    "Apakah kondisi kesehatan umum Anda buruk/cukup buruk?",
+    "Apakah dalam 30 hari terakhir Anda sering sakit fisik (≥ 14 hari)?",
+    "Apakah dalam 30 hari terakhir kesehatan mental Anda sering terganggu (≥ 14 hari)?",
+    "Apakah Anda tidur kurang dari 6 jam per hari?",
+    "Apakah Anda pernah didiagnosis asma?",
+    "Apakah Anda pernah didiagnosis COPD/emfisema/bronkitis kronis?",
+    "Apakah Anda pernah didiagnosis penyakit ginjal?",
     "Apakah Anda menderita diabetes?",
-    "Apakah berat badan Anda berlebih (obesitas)?",
-    "Apakah Anda pernah merasakan nyeri dada saat beraktivitas?",
-    "Apakah jantung Anda sering berdebar tanpa sebab?",
-    "Apakah Anda cepat lelah saat aktivitas ringan?",
-    "Apakah pergelangan kaki Anda sering bengkak?",
-    "Apakah Anda sering mengalami stres berat?",
-    "Apakah Anda tidur kurang dari 6 jam setiap malam?",
-    "Apakah Anda minum kopi lebih dari 3 gelas per hari?",
-    "Apakah Anda jarang melakukan pemeriksaan kesehatan rutin?",
-    "Apakah nyeri dada Anda menjalar ke leher atau lengan kiri?",
-    "Apakah Anda pernah pingsan atau hampir pingsan?",
-    "Apakah Anda pernah merasakan detak jantung tidak teratur?",
-    "Apakah Anda sering sesak napas saat tidur terlentang?",
-    "Apakah Anda sering merasa mual dan berkeringat dingin disertai nyeri dada?",
-    "Apakah tekanan darah Anda tidak stabil?",
+    "Apakah Anda saat ini perokok aktif?",
+    "Apakah Anda saat ini menggunakan rokok elektrik/vape?",
+    "Apakah Anda mengonsumsi alkohol (peminum alkohol)?",
+    "Apakah Anda kurang aktivitas fisik (tidak rutin berolahraga)?",
+    "Apakah Anda obesitas (BMI ≥ 30)?",
+    "Apakah Anda pernah didiagnosis kanker kulit?",
+    "Apakah Anda pernah didiagnosis kanker lainnya?",
+    "Apakah Anda pernah didiagnosis depresi?",
+    "Apakah Anda pernah didiagnosis arthritis/rematik?",
+    "Apakah Anda memiliki gangguan pendengaran?",
+    "Apakah Anda memiliki gangguan penglihatan?",
+    "Apakah Anda kesulitan konsentrasi/mengingat?",
+    "Apakah Anda kesulitan berjalan/naik tangga?",
+    "Apakah Anda kesulitan mengurus diri (mandi/berpakaian)?",
+    "Apakah Anda kesulitan melakukan aktivitas/urusan sehari-hari di luar rumah?",
   ];
-
-  const criticalIndices = [3, 4, 5, 7, 8, 9, 11, 19, 24];
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(25).fill(0));
-  const [score, setScore] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null); // 1=Ya, 0=Tidak
 
   const handleAnswer = (value: number) => {
+    setSelected(value);
+
     const updated = [...answers];
     updated[index] = value;
-
-    let newScore = score;
-    if (value === 1) {
-      newScore += criticalIndices.includes(index) ? 3 : 1;
-    }
-
     setAnswers(updated);
-    setScore(newScore);
 
-    // Early stop
-    if (newScore >= 12) {
-      handleSubmit(updated, newScore);
-      return;
-    }
+    setTimeout(() => {
+    setSelected(null);
 
     if (index < questions.length - 1) {
       setIndex(index + 1);
     } else {
-      handleSubmit(updated, newScore);
+      void handleSubmit(updated);
     }
+   }, 180);
   };
 
-  // ============================================
-  //  SUBMIT DATA
-  // ============================================
-  const handleSubmit = async (data: number[], scoreVal: number) => {
-    let risk = "Rendah";
-    if (scoreVal <= 8) risk = "Rendah";
-    else if (scoreVal <= 14) risk = "Sedang";
-    else risk = "Tinggi";
-
-    // ========== SIMPAN LOCAL STORAGE ==========
-    const item = {
+  const handleSubmit = async (data: number[]) => {
+    // simpan local (opsional) – tetap boleh
+    const localItem = {
       id: Date.now(),
       tanggal: new Date().toISOString(),
-      score: scoreVal,
-      risk,
       answers: data,
       questions,
     };
+    const existing = JSON.parse(localStorage.getItem("riwayat_local") || "[]");
+    existing.push(localItem);
+    localStorage.setItem("riwayat_local", JSON.stringify(existing));
 
-    const existing = JSON.parse(localStorage.getItem("riwayat") || "[]");
-    existing.push(item);
-    localStorage.setItem("riwayat", JSON.stringify(existing));
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Silakan login dulu.");
+      router.push("/login");
+      return;
+    }
 
-    // ========== SIMPAN KE BACKEND ==========
     try {
-      const userId = localStorage.getItem("user_id");
-
-      await fetch("http://localhost:8000/riwayat", {
+      // 1) PREDICT ke backend
+      const predRes = await fetch("http://127.0.0.1:8000/predict", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          user_id: Number(userId),
-          score: scoreVal,
-          hasil: risk,
-          tanggal: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ answers: data }),
       });
-    } catch (err) {
-      console.error("Gagal kirim ke server:", err);
-    }
 
-    // ========== PINDAH KE HALAMAN HASIL ==========
-    router.push(`/hasil-skrining?risk=${risk}`);
+      if (predRes.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
+
+      if (!predRes.ok) {
+        const err = await predRes.json().catch(() => ({}));
+        console.error("Predict error:", err);
+        alert("Gagal memproses prediksi.");
+        return;
+      }
+
+      const pred = await predRes.json(); // { risk, probability }
+      const risk = pred.risk || "Tidak diketahui";
+      const prob = typeof pred.probability === "number" ? pred.probability : 0;
+
+      // 2) SIMPAN RIWAYAT terkunci user login
+const saveRes = await fetch("http://127.0.0.1:8000/riwayat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ risk, probability: prob, answers: data }),
+});
+
+if (!saveRes.ok) {
+  const e = await saveRes.json().catch(() => ({}));
+  console.error("Save riwayat error:", saveRes.status, e);
+  alert("Prediksi berhasil, tapi gagal menyimpan riwayat.");
+}
+      // 3) pindah ke hasil
+      router.push(`/hasil-skrining?risk=${encodeURIComponent(risk)}&prob=${encodeURIComponent(String(prob))}`);
+    } catch (err) {
+      console.error("Submit error:", err);
+      alert("Terjadi kesalahan saat mengirim data.");
+    }
   };
 
   const progress = ((index + 1) / questions.length) * 100;
 
-  // warna progress sesuai tingkat risiko
-  const riskColor =
-    score <= 5
-      ? "from-green-400 to-green-300"
-      : score <= 10
-      ? "from-yellow-300 to-yellow-200"
-      : score <= 15
-      ? "from-orange-400 to-orange-300"
-      : "from-red-500 to-red-400";
-
   return (
     <div className="min-h-screen bg-[#EAF3EF] flex flex-col items-center py-8 px-4">
-
       {/* Header */}
       <div className="w-full max-w-5xl flex justify-between items-center mb-6">
         <button
@@ -145,20 +149,16 @@ export default function LaporGejala() {
 
       {/* CARD */}
       <div className="bg-[#A9CDBB] relative rounded-[30px] p-6 w-full max-w-5xl shadow-lg overflow-hidden">
-
-        {/* progress background */}
         <div className="absolute top-0 left-0 w-full h-6 bg-gray-200 rounded-t-[30px]" />
 
-        {/* progress bar */}
         <motion.div
-          className={`absolute top-0 left-0 h-6 bg-gradient-to-r ${riskColor} rounded-t-[30px]`}
+          className="absolute top-0 left-0 h-6 bg-gradient-to-r from-green-400 to-green-300 rounded-t-[30px]"
           style={{ width: `${progress}%` }}
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.4 }}
         />
 
-        {/* tombol kiri */}
         <div className="absolute top-4 left-4 z-20">
           <button
             className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center"
@@ -168,7 +168,6 @@ export default function LaporGejala() {
           </button>
         </div>
 
-        {/* tombol kanan */}
         <div className="absolute top-4 right-4 z-20">
           <button
             className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center"
@@ -178,7 +177,6 @@ export default function LaporGejala() {
           </button>
         </div>
 
-        {/* isi card */}
         <div
           className="flex justify-center items-center min-h-[520px] rounded-[20px] p-8 relative"
           style={{
@@ -201,35 +199,32 @@ export default function LaporGejala() {
               className="text-center max-w-2xl w-full relative z-20"
             >
               <h2
-  className="text-2xl md:text-3xl font-extrabold
-             mb-6 bg-white/40 backdrop-blur-sm
-             px-6 py-3 rounded-xl inline-block"
->
-  <span className="text-black drop-shadow-none">
-    {questions[index]}
-  </span>
-</h2>
+                className="text-2xl md:text-3xl font-extrabold mb-6 bg-white/40 backdrop-blur-sm px-6 py-3 rounded-xl inline-block"
+              >
+                <span className="text-black drop-shadow-none">
+                  {questions[index]}
+                </span>
+              </h2>
 
-
-              {/* tombol jawaban */}
               <div className="flex flex-col items-center gap-6 mt-6">
                 <button
                   onClick={() => handleAnswer(1)}
-                  className="bg-white/80 backdrop-blur-sm w-56 md:w-80 py-4 rounded-[36px] 
-                  text-lg font-bold shadow-md text-[#1E3A2E]"
+                  className={`backdrop-blur-sm w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md transition
+    ${selected === 1 ? "bg-green-600 text-white" : "bg-white/80 text-[#1E3A2E] hover:bg-green-200 hover:text-[#1E3A2E]"}
+     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500`}
                 >
                   YA
                 </button>
 
                 <button
                   onClick={() => handleAnswer(0)}
-                  className="bg-white/80 backdrop-blur-sm w-56 md:w-80 py-4 rounded-[36px] 
-                  text-lg font-bold shadow-md text-[#1E3A2E]"
+                  className={`backdrop-blur-sm w-56 md:w-80 py-4 rounded-[36px] text-lg font-bold shadow-md transition
+    ${selected === 0 ? "bg-red-600 text-white" : "bg-white/80 text-[#1E3A2E] hover:bg-red-200 hover:text-[#1E3A2E]"}
+     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500`}
                 >
                   TIDAK
                 </button>
               </div>
-
             </motion.div>
           </AnimatePresence>
         </div>

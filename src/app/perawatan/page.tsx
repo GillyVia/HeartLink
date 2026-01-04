@@ -142,8 +142,8 @@ export default function Perawatan() {
             <Image
               src="/doctor-illustration.png"
               alt="Ilustrasi Dokter"
-              width={400}
-              height={400}
+              width={3000}
+              height={3000}
               className="drop-shadow-lg"
             />
           </div>

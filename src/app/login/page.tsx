@@ -6,7 +6,6 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const router = useRouter();
 
-  // ✅ Tambahkan tipe parameter dengan benar
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -18,10 +17,12 @@ export default function Login() {
 
     if (res.ok) {
       const data = await res.json();
-      localStorage.setItem("user", JSON.stringify(data));
 
-      // ✅ Pastikan data.first_name benar
-      alert(`Selamat datang, ${data.first_name || "Pengguna"}!`);
+      // simpan token + user
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      alert(`Selamat datang, ${data.user?.first_name || "Pengguna"}!`);
       router.push("/dashboard");
     } else {
       alert("Email atau password salah.");
@@ -33,10 +34,8 @@ export default function Login() {
       className="h-screen w-full bg-cover bg-center flex"
       style={{ backgroundImage: "url('/background.jpg')" }}
     >
-      {/* Overlay */}
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#A9CDBB]/85 via-[#EAF3EF]/70 to-white/60"></div>
 
-      {/* Panel kiri */}
       <div className="relative z-10 w-1/2 flex justify-center items-center">
         <form
           onSubmit={handleSubmit}
@@ -81,7 +80,6 @@ export default function Login() {
         </form>
       </div>
 
-      {/* Panel kanan */}
       <div className="relative z-10 w-1/2 flex flex-col justify-center items-center text-center p-10">
         <h1 className="text-5xl font-extrabold text-[#1E3A2E] mb-4">
           Start Your Journey Now
