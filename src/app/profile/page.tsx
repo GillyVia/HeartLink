@@ -237,7 +237,19 @@ export default function ProfilPage() {
                 alt="Foto profil"
                 className="avatar-large"
               />
-              <label className="upload-pill absolute -bottom-3 left-0">
+            <label
+  className="
+    absolute -bottom-3 left-0 inline-flex items-center gap-2
+    px-4 py-2 rounded-full text-white font-semibold
+    bg-[#7FD7A2] hover:bg-[#6BC894]
+    shadow-md hover:shadow-lg
+    transition-all duration-200
+    active:bg-[#3B6649] active:shadow-md active:scale-[0.98]
+    focus-within:outline-none focus-within:ring-2 focus-within:ring-[#3B6649]/40
+    cursor-pointer select-none
+  "
+>
+
                 <FaUpload />
                 <span className="hidden sm:inline">Upload</span>
                 <input

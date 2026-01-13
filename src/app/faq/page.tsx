@@ -127,7 +127,7 @@ export default function FAQPage() {
 
         <div className="mb-6 rounded-2xl overflow-hidden relative shadow-lg">
           <Image
-            src="/background_faqv2.png"
+            src="/FAQ.JPG"
             alt="FAQ Header"
             width={1200}
             height={300}
